@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Build Daggerheart adversaries by role and tier, stack up to six, and track HP and Stress at the table. 328 features quoted from the SRD.">
+<meta name="description" content="Forge unique adversaries for your table to suffer through. Build Daggerheart adversaries by role and tier, stack up to six, and track HP and Stress at the table.">
 <meta name="color-scheme" content="light dark">
 <title>Adversary Forge</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236B3FA0'/%3E%3Cpath d='M16 5l3.4 15.5H12.6L16 5z' fill='%23F0B429'/%3E%3Crect x='10.5' y='20.5' width='11' height='2.6' rx='1.3' fill='%23F0B429'/%3E%3Crect x='14.7' y='23' width='2.6' height='4.5' rx='1.3' fill='%23F0B429'/%3E%3C/svg%3E">
@@ -118,6 +118,7 @@ input,textarea{font-family:inherit;font-size:inherit;color:inherit;}
   padding-bottom:20px;margin-bottom:26px;
   border-bottom:2px solid var(--line);
 }
+.tagline{color:var(--ink-soft);font-size:15px;margin:7px 0 0;max-width:52ch;}
 .masthead h1{
   font-size:clamp(30px,4.2vw,46px);font-weight:800;letter-spacing:-.02em;line-height:1.02;
 }
@@ -452,7 +453,9 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
 
 
 /* ---------- roster ---------- */
-.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;}
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;align-items:start;}
+.rcard{flex-wrap:wrap;}
+.rcard:has(.rdetail){grid-column:1 / -1;}
 .rcard{
   display:flex;align-items:center;gap:8px;background:var(--card-2);
   border:1.5px solid var(--line);border-radius:var(--r-sm);padding:4px 6px 4px 4px;
@@ -541,12 +544,14 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
 }
 .promo-art.noart img{display:none;}
 .promo-art.noart .promo-fallback{display:grid;}
-.promo-body{padding:20px 22px 22px;color:#E8DCF5;}
+.promo-body{padding:20px 22px 22px;color:#E8DCF5;flex:1;display:flex;align-items:center;gap:22px;}
+.promo-text{flex:1;min-width:0;}
+.promo-cta{flex:0 0 auto;align-self:center;}
 .promo-body .promo-kicker{
   margin:0 0 4px;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-bright);
 }
 .promo-body h2{font-size:26px;font-weight:800;letter-spacing:-.01em;margin-bottom:9px;}
-.promo-body .promo-line{margin:0 0 13px;font-size:14.5px;line-height:1.55;color:#BEAFD4;max-width:56ch;}
+.promo-body .promo-line{margin:0;font-size:14.5px;line-height:1.55;color:#BEAFD4;max-width:56ch;}
 .promo-cta{
   display:inline-block;margin-top:4px;background:var(--gold-bright);color:#2A1140;
   padding:11px 20px;border-radius:99px;font-weight:900;font-size:14px;text-decoration:none;
@@ -555,6 +560,36 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
 .promo-cta:hover{filter:brightness(1.08);transform:translateY(-1px);}
 
 /* ---------- phones ---------- */
+@keyframes cardOut{ to{ transform:translateY(26px) scale(.965); opacity:.25; } }
+@keyframes cardIn{ from{ transform:translateY(-16px); opacity:0; } to{ transform:none; opacity:1; } }
+.card-out{animation:cardOut .24s ease-in forwards;}
+.card-in{animation:cardIn .32s cubic-bezier(.2,.7,.3,1);}
+.stack{transition:transform .24s ease;}
+
+.rbar{display:flex;align-items:center;gap:8px;width:100%;}
+.rmult{
+  font-family:"Nunito Sans",sans-serif;font-size:11.5px;font-weight:900;
+  background:var(--plum);color:var(--on-accent);border-radius:99px;padding:2px 7px;vertical-align:2px;
+}
+.rexp{
+  flex:0 0 auto;width:24px;height:24px;border-radius:50%;cursor:pointer;
+  border:1.5px solid var(--line-strong);background:var(--card);color:var(--ink-soft);
+  font-size:11px;line-height:1;display:grid;place-items:center;
+}
+.rexp:hover{border-color:var(--plum);color:var(--plum);}
+.rdetail{
+  width:100%;margin-top:9px;padding:12px 12px 4px;border-top:1.5px solid var(--line);
+  animation:cardIn .22s ease;
+}
+.rd-mot{margin:0 0 10px;font-size:13px;font-style:italic;color:var(--ink-soft);}
+.rd-stats{display:flex;flex-wrap:wrap;gap:7px 15px;margin-bottom:10px;font-variant-numeric:tabular-nums;}
+.rd-atk{margin:0 0 12px;font-size:13.5px;}
+.rd-feat{padding:8px 0;border-top:1px solid var(--line);}
+.rd-feat:first-of-type{border-top:0;}
+.rd-fn{font-family:"Fraunces",serif;font-weight:600;font-size:15px;margin-right:7px;}
+.rd-feat p{margin:4px 0 0;font-size:13px;line-height:1.5;color:var(--ink-soft);}
+.rd-none{margin:6px 0 8px;font-size:12.5px;font-style:italic;color:var(--ink-soft);}
+
 .tabs{display:none;}
 .ab-none{color:var(--ink-soft);font-size:13.5px;font-style:italic;padding:10px 2px;margin:0;}
 .absearch{margin-bottom:10px;}
@@ -603,7 +638,8 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
   text-align:left;padding:9px 10px;border-radius:6px;cursor:pointer;
 }
   .masthead{gap:12px;padding-bottom:15px;margin-bottom:18px;}
-  .masthead h1{font-size:clamp(27px,8vw,34px);}
+  .tagline{color:var(--ink-soft);font-size:15px;margin:7px 0 0;max-width:52ch;}
+.masthead h1{font-size:clamp(27px,8vw,34px);}
     .masthead-side{margin-left:0;width:100%;}
   .masthead-side .ghost{flex:1;text-align:center;}
   .cols{gap:18px;}
@@ -734,11 +770,13 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
 
   .promo{flex-direction:column;gap:0;}
   .promo-art{flex:0 0 auto;aspect-ratio:4/3;max-height:none;}
-  .promo-body{padding:17px 16px 19px;}
+  .promo-body{padding:17px 16px 19px;flex-direction:column;align-items:stretch;gap:14px;}
   .promo-body h2{font-size:23px;}
   .promo-cta{display:block;text-align:center;}
 
-  .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;}
+  .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;align-items:start;}
+.rcard{flex-wrap:wrap;}
+.rcard:has(.rdetail){grid-column:1 / -1;}
   .rcard{
   display:flex;align-items:center;gap:8px;background:var(--card-2);
   border:1.5px solid var(--line);border-radius:var(--r-sm);padding:4px 6px 4px 4px;
@@ -774,6 +812,7 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
   <div class="masthead">
     <div>
       <h1>Adversary <em>Forge</em></h1>
+      <p class="tagline">Forge unique adversaries for your table to suffer through.</p>
     </div>
     <div class="masthead-side">
       <button class="ghost" id="themeBtn" type="button">Theme</button>
@@ -883,15 +922,17 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
           <span class="promo-fallback">Embergrimme</span>
         </a>
         <div class="promo-body">
-          <p class="promo-kicker">From Honey Roll</p>
-          <h2 class="display">Embergrimme</h2>
-          <p class="promo-line">31 Dark Fantasy Adversaries perfect for your next spooky campaign!</p>
+          <div class="promo-text">
+            <p class="promo-kicker">From Honey Roll</p>
+            <h2 class="display">Embergrimme</h2>
+            <p class="promo-line">31 Dark Fantasy Adversaries perfect for your next spooky campaign!</p>
+          </div>
           <a class="promo-cta" href="https://patreon.com/honeyroll" target="_blank" rel="noopener">See it on Patreon</a>
         </div>
       </section>
 
       <section class="panel" data-view="lib">
-        <div class="panel-head"><span class="step">Saved</span><h2>Roster</h2></div>
+        <div class="panel-head"><span class="step">Saved</span><h2>Vault</h2></div>
         <div class="roster" id="roster"></div>
       </section>
 
@@ -917,7 +958,7 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
         <div class="block-foot">
           <button class="primary" id="copyBtn" type="button">Copy text</button>
           <button class="primary" id="pngBtn" type="button">Save PNG</button>
-          <button class="ghost" id="dupBtn" type="button">+1 of these</button>
+          <button class="ghost" id="dupBtn" type="button">Duplicate</button>
           <button class="ghost" id="newBtn" type="button">New card</button>
           <button class="ghost" id="saveBtn" type="button">Keep</button>
         </div>
@@ -1490,7 +1531,7 @@ function newCard(){
 var cardSeq = 1;
 var STACK = [];
 var S = null;                       /* always STACK[0], the card you are editing */
-var UI = {editing:false, lastSaved:null, loaded:null, drag:null, q:"", showRest:false, tab:"build"};
+var UI = {editing:false, lastSaved:null, loaded:null, drag:null, q:"", showRest:false, tab:"build", expanded:null};
 
 /* The card's own name goes into feature text wherever the SRD named its adversary. */
 function nm(){ return (S && S.name && S.name.trim()) || "this adversary"; }
@@ -2007,20 +2048,61 @@ function renderStack(){
   }).join("");
 }
 
+/* The whole saved block, for when the one line is not enough. */
+function vaultDetail(r){
+  var dt = (DTYPES.filter(function(d){ return d.k === r.dmgType; })[0] || DTYPES[0]).label;
+  var cells = [["Diff", r.stats.diff]];
+  if (r.stats.major !== null && r.stats.major !== undefined) cells.push(["Thr", r.stats.major+"/"+r.stats.severe]);
+  cells.push(["HP", r.stats.hp], ["Str", r.stats.stress], ["ATK", (r.stats.atk>=0?"+":"")+r.stats.atk]);
+  var nm2 = (r.name && r.name.trim()) || "this adversary";
+  var sub = function(t){
+    var o = String(t).replace(/\{N\}/g, nm2);
+    if (nm2 === "this adversary") o = o.replace(/(^|[.!?]\s+)this adversary/g, function(_,l){ return l+"This adversary"; });
+    return o;
+  };
+  var feats = (r.feats||[]).slice().sort(function(a,b){
+    return (PAR_ORDER[a.k]===undefined?9:PAR_ORDER[a.k]) - (PAR_ORDER[b.k]===undefined?9:PAR_ORDER[b.k]);
+  });
+  return '<div class="rdetail">'
+    + (r.motives ? '<p class="rd-mot">Motives &amp; Tactics: '+esc(r.motives)+'</p>' : '')
+    + '<div class="rd-stats">' + cells.map(function(c){
+        return '<div class="ms"><span class="ms-lab">'+c[0]+'</span><b class="ms-val">'+esc(String(c[1]))+'</b></div>';
+      }).join("") + '</div>'
+    + '<p class="rd-atk"><b>'+esc(r.atkName||"Attack")+':</b> '+esc(r.range||"Close")+' &middot; '+esc(r.dmg||"—")+' '+esc(dt)+'</p>'
+    + (feats.length
+        ? feats.map(function(f){
+            return '<div class="rd-feat"><span class="rd-fn">'+esc(f.n)+'</span>'
+              + '<span class="tag tag-'+f.k.toLowerCase()+'">'+f.k+'</span>'
+              + (f.c ? '<span class="tag tag-cost">'+esc(f.c)+'</span>' : '')
+              + '<p>'+esc(sub(f.t))+'</p></div>';
+          }).join("")
+        : '<p class="rd-none">No features.</p>')
+    + (r.inst && r.inst.length > 1 ? '<p class="rd-none">Saved with '+r.inst.length+' copies.</p>' : '')
+    + '</div>';
+}
+
 function renderRoster(){
   var list = load();
   el("roster").innerHTML = list.length
     ? list.map(function(r,i){
         var fresh = UI.lastSaved && r.at === UI.lastSaved;
         var open  = UI.loaded && r.at === UI.loaded;
+        var isOpen = UI.expanded === r.at;
+        var n = (r.inst && r.inst.length) || 1;
         return '<div class="rcard'+(fresh?" rcard-new":"")+(open?" rcard-open":"")+'">'
-          + '<button class="rload" type="button" data-load="'+i+'">'
-          + '<span class="rname">'+esc(r.name||"Nameless thing")+'</span>'
-          + '<span class="rmeta">Tier '+r.tier+' '+esc(ROLES[r.role]?ROLES[r.role].name:r.role)
-          + (r.at ? ' &middot; '+esc(ago(r.at)) : '')+'</span>'
-          + '</button>'
-          + (fresh ? '<span class="rflag">Just saved</span>' : (open ? '<span class="rflag rflag-quiet">Open</span>' : ''))
-          + '<button class="rdel" type="button" data-del="'+i+'" data-confirm="0" aria-label="Delete '+esc(r.name||"this one")+'">&times;</button>'
+          + '<div class="rbar">'
+          +   '<button class="rload" type="button" data-load="'+i+'">'
+          +     '<span class="rname">'+esc(r.name||"Nameless thing")
+          +       (n > 1 ? ' <span class="rmult">&times;'+n+'</span>' : '')+'</span>'
+          +     '<span class="rmeta">Tier '+r.tier+' '+esc(ROLES[r.role]?ROLES[r.role].name:r.role)
+          +       (r.at ? ' &middot; '+esc(ago(r.at)) : '')+'</span>'
+          +   '</button>'
+          +   (fresh ? '<span class="rflag">Just saved</span>' : (open ? '<span class="rflag rflag-quiet">In play</span>' : ''))
+          +   '<button class="rexp" type="button" data-exp="'+i+'" aria-expanded="'+(isOpen?"true":"false")
+          +     '" aria-label="Show everything">'+(isOpen?"&#9652;":"&#9662;")+'</button>'
+          +   '<button class="rdel" type="button" data-del="'+i+'" data-confirm="0" aria-label="Delete '+esc(r.name||"this one")+'">&times;</button>'
+          + '</div>'
+          + (isOpen ? vaultDetail(r) : '')
           + '</div>';
       }).join("")
     : '<span class="empty">Nothing saved yet.</span>';
@@ -2071,6 +2153,15 @@ function toText(){
    The card is redrawn on a canvas rather than screenshotted, so it comes out at
    whatever pixel density we ask for and picks up the theme currently on screen. */
 var PNG_W = 760, PNG_PAD = 30, PNG_R = 18, PNG_SCALE = 2;
+
+/* Honey Roll mark stamped on every export. Set BRAND_LOGO to a data URI to use
+   the real logo; until then the footer carries the name in type. */
+var BRAND_LOGO = "";
+var brandImg = null;
+if (BRAND_LOGO){
+  brandImg = new Image();
+  brandImg.src = BRAND_LOGO;
+}
 
 function tok(name){
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -2216,12 +2307,29 @@ function paintCard(ctx, draw){
   }
 
   /* ---- credit ---- */
-  y += 30;
+  y += 34;
+  var logoOK = brandImg && brandImg.complete && brandImg.naturalWidth > 0;
   if (draw){
+    if (logoOK){
+      var lh = 26, lw = lh * (brandImg.naturalWidth / brandImg.naturalHeight);
+      ctx.drawImage(brandImg, P, y - 18, lw, lh);
+      ctx.font = sans(11.5,900); ctx.fillStyle = C.gold;
+      try{ ctx.letterSpacing = "0.8px"; }catch(e){}
+      ctx.fillText("HONEY ROLL", P + lw + 10, y);
+      try{ ctx.letterSpacing = "0px"; }catch(e){}
+    } else {
+      ctx.font = sans(11.5,900); ctx.fillStyle = C.gold;
+      try{ ctx.letterSpacing = "0.8px"; }catch(e){}
+      ctx.fillText("HONEY ROLL", P, y);
+      try{ ctx.letterSpacing = "0px"; }catch(e){}
+    }
     ctx.font = sans(11); ctx.fillStyle = C.inkSoft;
-    ctx.fillText("Compatible with Daggerheart · Made with Adversary Forge", P, y);
+    var tail = "Adversary Forge · Compatible with Daggerheart";
+    ctx.textAlign = "right";
+    ctx.fillText(tail, PNG_W - P, y);
+    ctx.textAlign = "left";
   }
-  y += P - 4;
+  y += P - 2;
 
   return {height:y, headBottom:headBottom};
 }
@@ -2390,6 +2498,12 @@ document.addEventListener("click", function(e){
     CUSTOM = CUSTOM.filter(function(x){ return x.id !== t.dataset.delfeat; });
     saveCustom(); renderAbilities(); return;
   }
+  if (t.dataset.exp !== undefined){
+    var rec = load()[parseInt(t.dataset.exp,10)];
+    UI.expanded = (rec && UI.expanded === rec.at) ? null : (rec ? rec.at : null);
+    renderRoster();
+    return;
+  }
   if (t.id === "abMore"){ UI.showRest = !UI.showRest; renderAbilities(); return; }
   if (t.dataset.tab){ setTab(t.dataset.tab); return; }
   if (t.dataset.pip){
@@ -2432,12 +2546,23 @@ document.addEventListener("click", function(e){
   if (t.dataset.load !== undefined){
     var r = load()[parseInt(t.dataset.load,10)];
     if (r){
-      var c = Object.assign(newCard(), r);
-      c.stats = Object.assign({}, r.stats);
-      c.feats = (r.feats||[]).map(function(f){ return Object.assign({}, f); });
-      c.inst  = [{hp:0, st:0}];
-      c.dirty = {diff:1,major:1,severe:1,hp:1,stress:1,atk:1,dmg:1,atkName:1,range:1,dmgType:1};
-      pushCard(c);
+      /* Already on the table? Bring it to the front rather than making another. */
+      var at = 0;
+      for (var q=0;q<STACK.length;q++){ if (STACK[q].savedAt && STACK[q].savedAt === r.at){ at = q + 1; break; } }
+      if (at){
+        if (at > 1) STACK.unshift(STACK.splice(at-1,1)[0]);
+        S = STACK[0];
+      } else {
+        var c = Object.assign(newCard(), r);
+        c.stats = Object.assign({}, r.stats);
+        c.feats = (r.feats||[]).map(function(f){ return Object.assign({}, f); });
+        c.inst  = (r.inst && r.inst.length)
+          ? r.inst.map(function(x){ return {hp:x.hp||0, st:x.st||0}; })
+          : [{hp:0, st:0}];
+        c.savedAt = r.at || null;
+        c.dirty = {diff:1,major:1,severe:1,hp:1,stress:1,atk:1,dmg:1,atkName:1,range:1,dmgType:1};
+        pushCard(c);
+      }
       UI.loaded = r.at || null;
       UI.lastSaved = null;
       renderAll(); renderRoster();
@@ -2458,7 +2583,7 @@ document.addEventListener("click", function(e){
       el("nameIn").value = S.name; renderBlock(); break;
     case "dupBtn":
       S.inst.push({hp:0, st:0});
-      renderTrack(); flash(t, "Added");
+      renderTrack(); renderStack();
       break;
     case "newBtn":
       pushCard(newCard());
@@ -2476,23 +2601,28 @@ document.addEventListener("click", function(e){
     case "cfAdd":
       var nf = readMaker();
       S.feats.push(cloneFeat(nf));
-      clearMaker(); renderBlock(); flash(t, "Added");
+      clearMaker(); renderBlock();
       break;
     case "cfSave":
       var sf = readMaker();
       CUSTOM.unshift(sf);
-      saveCustom(); clearMaker(); renderAbilities(); flash(t, "Saved");
+      saveCustom(); clearMaker(); renderAbilities();
       break;
     case "rollMotive":
       S.motives = nextMotive(); el("motiveIn").value = S.motives; renderBlock(); break;
     case "saveBtn":
+      keepCard(t);
+      break;
+    case "saveBtnLegacy":
       var list = load();
       var stamp = Date.now();
       UI.lastSaved = stamp;
       UI.loaded = stamp;
       list.unshift({name:S.name, role:S.role, tier:S.tier, motives:S.motives, atkName:S.atkName,
                     range:S.range, dmg:S.dmg, dmgType:S.dmgType, at:stamp,
-                    stats:Object.assign({},S.stats), feats:S.feats.slice()});
+                    stats:Object.assign({},S.stats),
+                    feats:S.feats.map(function(f){ return Object.assign({}, f); }),
+                    inst:S.inst.map(function(x){ return {hp:x.hp, st:x.st}; })});
       save(list.slice(0,30)); renderRoster();
       flash(t, "Kept");
       break;
@@ -2656,6 +2786,43 @@ document.addEventListener("click", function(e){
     return;
   }
 });
+
+/* Keep puts the card in the vault, slides it down a slot and deals a fresh one. */
+function keepCard(btn){
+  var list = load();
+  var stamp = Date.now();
+  UI.lastSaved = stamp;
+  UI.loaded = stamp;
+  S.savedAt = stamp;
+  list.unshift({name:S.name, role:S.role, tier:S.tier, motives:S.motives, atkName:S.atkName,
+                range:S.range, dmg:S.dmg, dmgType:S.dmgType, at:stamp,
+                stats:Object.assign({}, S.stats),
+                feats:S.feats.map(function(f){ return Object.assign({}, f); }),
+                inst:S.inst.map(function(x){ return {hp:x.hp, st:x.st}; })});
+  save(list.slice(0,40));
+
+  var top = el("topCard");
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var deal = function(){
+    var fresh = newCard();
+    STACK.unshift(fresh);
+    if (STACK.length > MAX_CARDS) STACK.length = MAX_CARDS;
+    S = STACK[0];
+    applySuggested(true); syncAutoFeats(null);
+    S.name = NAME_A[Math.floor(Math.random()*NAME_A.length)]+" "+NAME_B[Math.floor(Math.random()*NAME_B.length)];
+    S.motives = nextMotive();
+    renderAll(); renderRoster();
+    var t2 = el("topCard");
+    if (t2 && !reduce){
+      t2.classList.add("card-in");
+      setTimeout(function(){ t2.classList.remove("card-in"); }, 340);
+    }
+  };
+  if (top && !reduce){
+    top.classList.add("card-out");
+    setTimeout(function(){ top.classList.remove("card-out"); deal(); }, 240);
+  } else { deal(); }
+}
 
 /* ============ mobile tabs ============ */
 function setTab(t){
