@@ -6,6 +6,7 @@
 <meta name="description" content="Build SRD-compatible Daggerheart adversaries by role and tier. Suggested stats, damage thresholds, a Passive/Action/Reaction feature library with SRD examples, and PNG export.">
 <meta name="color-scheme" content="light dark">
 <title>Adversary Forge</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236B3FA0'/%3E%3Cpath d='M16 5l3.4 15.5H12.6L16 5z' fill='%23F0B429'/%3E%3Crect x='10.5' y='20.5' width='11' height='2.6' rx='1.3' fill='%23F0B429'/%3E%3Crect x='14.7' y='23' width='2.6' height='4.5' rx='1.3' fill='%23F0B429'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Nunito+Sans:wght@400;600;700;900&display=swap">
 </head>
 <body>
@@ -458,6 +459,14 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
 }
 .sheet-foot .primary{flex:0 0 auto;}
 .sheet-note{font-size:12.5px;color:var(--ink-soft);}
+.sheet-blocked{
+  max-width:52ch;margin:0;padding:20px 22px;border-radius:var(--r-sm);
+  background:var(--warn-bg);color:var(--warn);border:1.5px solid var(--warn);
+  font-size:14px;line-height:1.55;
+}
+.sheet-blocked b{font-weight:900;}
+.primary:disabled, .ghost:disabled{opacity:.45;cursor:not-allowed;}
+.sheet-img img:not([src]){display:none;}
 
 @media (prefers-reduced-motion: reduce){
   *{transition:none !important;animation:none !important;}
@@ -631,7 +640,10 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
       <h3 class="display">Stat block image</h3>
       <button class="ghost" id="pngClose" type="button">Close</button>
     </div>
-    <div class="sheet-img"><img id="pngImg" alt="The finished stat block"></div>
+    <div class="sheet-img">
+      <img id="pngImg" alt="The finished stat block">
+      <p class="sheet-blocked" id="pngBlocked" hidden>Your browser is blocking this page from reading the image it just drew. Firefox does this when <b>Resist Fingerprinting</b> or strict anti-fingerprinting is on, and some privacy extensions do it too. Allow canvas access for this site, or use the <b>Copy text</b> button instead.</p>
+    </div>
     <div class="sheet-foot">
       <button class="primary" id="pngDownload" type="button">Download</button>
       <button class="ghost" id="pngCopy" type="button">Copy image</button>
@@ -1706,11 +1718,45 @@ function savePNG(btn){
   }, "image/png");
 }
 
+function canvasReadable(cv){
+  /* Anti-fingerprinting modes can block or blank canvas readback. Sample a few
+     pixels that must be painted; if they all come back empty, the read failed. */
+  try {
+    var g = cv.getContext("2d");
+    var pts = [[cv.width*0.5, cv.height*0.12], [cv.width*0.12, cv.height*0.5], [cv.width*0.5, cv.height*0.5]];
+    for (var i=0;i<pts.length;i++){
+      var d = g.getImageData(Math.floor(pts[i][0]), Math.floor(pts[i][1]), 1, 1).data;
+      if (d[3] !== 0) return true;
+    }
+    return false;
+  } catch(e){ return false; }
+}
+
 function openPNG(){
   var go = function(){
-    var cv = renderPNG();
+    var cv, url;
+    try {
+      cv = renderPNG();
+      url = cv.toDataURL("image/png");
+    } catch(e){ url = null; }
+
+    if (!url || !canvasReadable(cv)){
+      el("pngSheet").hidden = false;
+      el("pngImg").removeAttribute("src");
+      el("pngImg").alt = "";
+      el("pngBlocked").hidden = false;
+      el("pngDownload").disabled = true;
+      el("pngCopy").disabled = true;
+      el("pngClose").focus();
+      return;
+    }
+
     window.__pngCanvas = cv;
-    el("pngImg").src = cv.toDataURL("image/png");
+    el("pngBlocked").hidden = true;
+    el("pngDownload").disabled = false;
+    el("pngCopy").disabled = false;
+    el("pngImg").alt = "The finished stat block";
+    el("pngImg").src = url;
     el("pngSheet").hidden = false;
     el("pngClose").focus();
   };
