@@ -1,0 +1,1998 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Build SRD-compatible Daggerheart adversaries by role and tier. Suggested stats, damage thresholds, a Passive/Action/Reaction feature library with SRD examples, and PNG export.">
+<meta name="color-scheme" content="light dark">
+<title>Adversary Forge</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Nunito+Sans:wght@400;600;700;900&display=swap">
+</head>
+<body>
+<style>
+/* Hope is gold, Fear is purple. Purple carries the interface,
+   gold marks the things you act on, and the damage ramp runs gold to crimson. */
+:root{
+  --plum:#6B3FA0;
+  --plum-deep:#3A1F63;
+  --plum-soft:#A47BD4;
+  --gold:#8A5D07;
+  --gold-bright:#F0B429;
+  --gold-bg:#FCF1D7;
+  --on-accent:#FFFFFF;
+  --ink:#2E1A47;
+  --ink-soft:#6E5B87;
+  --paper:#F6F2FA;
+  --card:#FFFFFF;
+  --card-2:#FAF6FD;
+  --line:#E4DBF0;
+  --line-strong:#CDBEE4;
+  --ok:#8A6410;
+  --ok-bg:#FDF3D6;
+  --warn:#8E4108;
+  --warn-bg:#FBE3CC;
+  --bad:#B02A43;
+  --bad-bg:#F9DCE0;
+  --shadow:0 1px 2px rgba(46,26,71,.06), 0 8px 24px -12px rgba(46,26,71,.24);
+  --shadow-lift:0 2px 4px rgba(46,26,71,.09), 0 16px 40px -16px rgba(46,26,71,.34);
+  --r:14px;
+  --r-sm:9px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --plum:#B98BE8;
+    --plum-deep:#D6BCF5;
+    --plum-soft:#7A50B0;
+    --gold:#F0B429;
+    --gold-bright:#FFCE55;
+    --gold-bg:#3A2C0E;
+    --on-accent:#20142F;
+    --ink:#F0E8FA;
+    --ink-soft:#AE9DC6;
+    --paper:#171029;
+    --card:#221737;
+    --card-2:#2A1D43;
+    --line:#3C2C5C;
+    --line-strong:#553E7D;
+    --ok:#E8C05C;
+    --ok-bg:#3A2C0E;
+    --warn:#EE9A54;
+    --warn-bg:#43260F;
+    --bad:#EF7B93;
+    --bad-bg:#421A26;
+    --shadow:0 1px 2px rgba(0,0,0,.32), 0 8px 24px -12px rgba(0,0,0,.62);
+    --shadow-lift:0 2px 4px rgba(0,0,0,.38), 0 16px 40px -16px rgba(0,0,0,.72);
+  }
+}
+:root[data-theme="dark"]{
+  --plum:#B98BE8;
+  --plum-deep:#D6BCF5;
+  --plum-soft:#7A50B0;
+  --gold:#F0B429;
+  --gold-bright:#FFCE55;
+  --gold-bg:#3A2C0E;
+  --on-accent:#20142F;
+  --ink:#F0E8FA;
+  --ink-soft:#AE9DC6;
+  --paper:#171029;
+  --card:#221737;
+  --card-2:#2A1D43;
+  --line:#3C2C5C;
+  --line-strong:#553E7D;
+  --ok:#E8C05C;
+  --ok-bg:#3A2C0E;
+  --warn:#EE9A54;
+  --warn-bg:#43260F;
+  --bad:#EF7B93;
+  --bad-bg:#421A26;
+  --shadow:0 1px 2px rgba(0,0,0,.32), 0 8px 24px -12px rgba(0,0,0,.62);
+  --shadow-lift:0 2px 4px rgba(0,0,0,.38), 0 16px 40px -16px rgba(0,0,0,.72);
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Nunito Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.display{
+  font-family:"Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+  font-variation-settings:"SOFT" 40, "WONK" 1;
+  text-wrap:balance;
+  margin:0;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;}
+input,textarea{font-family:inherit;font-size:inherit;color:inherit;}
+:focus-visible{outline:2.5px solid var(--plum);outline-offset:2px;border-radius:4px;}
+
+.wrap{max-width:1360px;margin:0 auto;padding:28px 22px 80px;}
+
+/* ---------- masthead ---------- */
+.masthead{
+  display:flex;flex-wrap:wrap;align-items:flex-end;gap:18px 26px;
+  padding-bottom:20px;margin-bottom:26px;
+  border-bottom:2px solid var(--line);
+}
+.masthead h1{
+  font-size:clamp(30px,4.2vw,46px);font-weight:800;letter-spacing:-.02em;line-height:1.02;
+}
+.masthead h1 em{font-style:normal;color:var(--gold);}
+.tagline{color:var(--ink-soft);max-width:46ch;margin:6px 0 0;font-size:14.5px;}
+.masthead-side{margin-left:auto;display:flex;gap:10px;align-items:center;}
+
+.ghost{
+  background:transparent;border:1.5px solid var(--line-strong);color:var(--ink-soft);
+  padding:8px 14px;border-radius:var(--r-sm);cursor:pointer;font-weight:700;font-size:13px;
+  transition:background .15s, color .15s, border-color .15s;
+}
+.ghost:hover{background:var(--card-2);color:var(--ink);border-color:var(--plum-soft);}
+
+/* ---------- layout ---------- */
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 470px;gap:30px;align-items:start;}
+@media (max-width:1080px){.cols{grid-template-columns:minmax(0,1fr);}}
+
+.panel{
+  background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);
+  padding:20px 20px 22px;margin-bottom:20px;box-shadow:var(--shadow);
+}
+.panel-head{display:flex;align-items:baseline;gap:12px;margin-bottom:4px;}
+.panel-head h2{font-size:19px;font-weight:600;letter-spacing:-.01em;}
+.panel-head .step{
+  font-family:"Nunito Sans",sans-serif;font-size:11px;font-weight:900;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--gold);background:var(--gold-bg);
+  border:1.5px solid var(--gold);padding:3px 8px;border-radius:99px;
+}
+.panel-note{color:var(--ink-soft);font-size:13.5px;margin:2px 0 16px;}
+
+/* ---------- type grid ---------- */
+.typegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px;}
+.typecard{
+  position:relative;text-align:left;cursor:pointer;
+  background:var(--card-2);border:1.5px solid var(--line);border-radius:var(--r-sm);
+  padding:11px 12px 12px;transition:transform .12s, border-color .15s, background .15s, box-shadow .15s;
+}
+.typecard:hover{transform:translateY(-2px);border-color:var(--plum-soft);box-shadow:var(--shadow);}
+.typecard[aria-pressed="true"]{
+  background:var(--plum);border-color:var(--plum);color:var(--on-accent);box-shadow:var(--shadow-lift);
+}
+.typecard[aria-pressed="true"] .tc-desc{color:var(--on-accent);opacity:.82;}
+.typecard[aria-pressed="true"] .bp{background:var(--card);color:var(--plum);border-color:transparent;}
+.tc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.tc-name{font-family:"Fraunces",serif;font-weight:600;font-size:16.5px;letter-spacing:-.01em;}
+.tc-desc{font-size:12px;color:var(--ink-soft);line-height:1.35;margin-top:3px;}
+.bp{
+  font-size:10.5px;font-weight:900;letter-spacing:.04em;padding:2px 7px;border-radius:99px;
+  border:1.5px solid var(--line-strong);background:var(--card);white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- tier ---------- */
+.tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.tierbtn{
+  cursor:pointer;background:var(--card-2);border:1.5px solid var(--line);border-radius:var(--r-sm);
+  padding:12px 8px;text-align:center;transition:transform .12s, background .15s, border-color .15s;
+}
+.tierbtn:hover{transform:translateY(-2px);border-color:var(--plum-soft);}
+.tierbtn[aria-pressed="true"]{background:var(--plum);border-color:var(--plum);color:var(--on-accent);box-shadow:var(--shadow-lift);}
+.tierbtn[aria-pressed="true"] .tier-lv{color:var(--on-accent);opacity:.8;}
+.tier-n{font-family:"Fraunces",serif;font-size:24px;font-weight:800;line-height:1;}
+.tier-lv{font-size:11px;font-weight:700;color:var(--ink-soft);margin-top:4px;letter-spacing:.02em;}
+
+/* ---------- fields ---------- */
+.field-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field > label{font-size:12px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);}
+.textin{
+  width:100%;background:var(--card-2);border:1.5px solid var(--line);border-radius:var(--r-sm);
+  padding:9px 11px;transition:border-color .15s, background .15s;
+}
+.textin:focus{background:var(--card);border-color:var(--plum);outline:none;}
+textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
+
+.stepper{display:flex;align-items:stretch;border:1.5px solid var(--line);border-radius:var(--r-sm);overflow:hidden;background:var(--card-2);}
+.stepper.off{border-color:var(--warn);background:var(--warn-bg);}
+.stepper button{
+  width:38px;border:0;background:transparent;cursor:pointer;font-size:18px;font-weight:700;
+  color:var(--ink-soft);transition:background .12s,color .12s;
+}
+.stepper button:hover{background:var(--plum);color:var(--on-accent);}
+.stepper input{
+  flex:1;min-width:0;border:0;background:transparent;text-align:center;
+  font-family:"Fraunces",serif;font-size:20px;font-weight:800;padding:7px 0;
+  font-variant-numeric:tabular-nums;
+}
+.stepper input:focus{outline:none;}
+.hint{font-size:11.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums;}
+.hint.off{color:var(--warn);font-weight:700;}
+.hint.na{font-style:italic;}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;}
+.chip{
+  cursor:pointer;background:var(--card-2);border:1.5px solid var(--line);border-radius:99px;
+  padding:4px 11px;font-size:12px;font-weight:700;color:var(--ink-soft);
+  font-variant-numeric:tabular-nums;transition:all .13s;
+}
+.chip:hover{background:var(--plum);border-color:var(--plum);color:var(--on-accent);}
+
+/* ---------- threshold band ---------- */
+.band-wrap{margin-top:18px;}
+.band-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;}
+.band-label h3{font-size:15px;font-weight:600;}
+.band-label span{font-size:12px;color:var(--ink-soft);}
+.band{display:flex;height:46px;border-radius:var(--r-sm);overflow:hidden;border:1.5px solid var(--line);}
+.zone{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-size:10.5px;font-weight:900;letter-spacing:.09em;line-height:1;padding:0 4px;text-align:center;
+  text-transform:uppercase;opacity:.85;
+  transition:flex-grow .35s cubic-bezier(.4,0,.2,1);
+}
+.zone b{
+  font-family:"Fraunces",serif;font-size:17px;font-weight:800;letter-spacing:0;
+  text-transform:none;font-variant-numeric:tabular-nums;
+}
+.z1{background:var(--ok-bg);color:var(--ok);}
+.z2{background:var(--warn-bg);color:var(--warn);}
+.z3{background:var(--bad-bg);color:var(--bad);}
+.band-scale{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--ink-soft);font-variant-numeric:tabular-nums;}
+.band-empty{
+  padding:14px;border:1.5px dashed var(--line-strong);border-radius:var(--r-sm);
+  color:var(--ink-soft);font-size:13px;text-align:center;background:var(--card-2);
+}
+
+/* ---------- abilities ---------- */
+.abfilter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+
+.maker{border:1.5px dashed var(--line-strong);border-radius:var(--r-sm);padding:13px 15px;margin-bottom:16px;background:var(--card-2);}
+.maker-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.maker-head h3{font-size:16.5px;font-weight:600;}
+.maker-body{margin-top:14px;}
+.parpick{display:flex;flex-wrap:wrap;gap:6px;}
+.parpick button{
+  cursor:pointer;background:var(--card);border:1.5px solid var(--line);border-radius:99px;
+  padding:6px 13px;font-size:12.5px;font-weight:800;color:var(--ink-soft);transition:all .13s;
+}
+.parpick button:hover{border-color:var(--plum-soft);color:var(--ink);}
+.parpick button[aria-pressed="true"]{background:var(--plum);border-color:var(--plum);color:var(--on-accent);}
+.chip-solid{background:var(--gold-bright) !important;border-color:var(--gold-bright) !important;color:#3A1F63 !important;}
+.chip-solid:hover{filter:brightness(1.08);}
+.ab-del{
+  flex-shrink:0;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line-strong);
+  background:var(--card);color:var(--ink-soft);font-size:13px;line-height:1;cursor:pointer;
+  display:grid;place-items:center;align-self:center;
+}
+.ab-del:hover{background:var(--bad);border-color:var(--bad);color:var(--on-accent);}
+.ab-group{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  font-size:11px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-soft);margin:16px 0 2px;
+  padding-bottom:6px;border-bottom:1.5px solid var(--line);
+}
+.ab-group-note{
+  font-size:11px;font-weight:600;letter-spacing:0;text-transform:none;
+  color:var(--ink-soft);opacity:.85;
+}
+.ab-src{
+  font-size:11px;font-weight:700;letter-spacing:.02em;color:var(--gold);margin-top:5px;
+}
+.ab-group:first-child{margin-top:0;}
+.ab-row{display:flex;gap:7px;align-items:stretch;}
+.ab-row .ab{flex:1;}
+.ablist{display:flex;flex-direction:column;gap:8px;max-height:min(70vh,780px);overflow-y:auto;padding-right:6px;}
+.ab{
+  display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;cursor:pointer;
+  background:var(--card-2);border:1.5px solid var(--line);border-radius:var(--r-sm);
+  padding:11px 13px;transition:border-color .14s, background .14s, transform .12s;
+}
+.ab:hover{border-color:var(--plum);transform:translateX(2px);}
+.ab[data-added="1"]{background:var(--ok-bg);border-color:var(--ok);cursor:default;}
+.ab[data-added="1"]:hover{transform:none;}
+.ab-body{flex:1;min-width:0;}
+.ab-name{font-family:"Fraunces",serif;font-weight:600;font-size:15.5px;letter-spacing:-.01em;}
+.ab-text{font-size:12.5px;color:var(--ink-soft);line-height:1.45;margin-top:2px;}
+.ab-meta{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;max-width:120px;}
+.tag{
+  font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;
+  padding:3px 8px;border-radius:99px;white-space:nowrap;
+}
+.tag-passive{background:var(--card);border:1.5px solid var(--line-strong);color:var(--ink-soft);}
+.tag-action{background:var(--plum);color:var(--on-accent);}
+.tag-reaction{background:var(--warn-bg);color:var(--warn);border:1.5px solid var(--warn);}
+.tag-cost{background:var(--gold-bg);color:var(--gold);border:1.5px solid var(--gold);}
+
+/* Anything in the stat block can be clicked and typed over. */
+[data-edit]{
+  display:inline;font:inherit;color:inherit;letter-spacing:inherit;
+  cursor:text;border-radius:4px;padding:0 3px;margin:0 -3px;
+  transition:background .13s, box-shadow .13s;
+}
+[data-edit]:hover{background:var(--gold-bg);box-shadow:0 0 0 1px var(--gold);}
+[data-edit]:focus{
+  background:var(--card);outline:none;
+  box-shadow:0 0 0 2px var(--plum);
+}
+[data-edit].blank::before{content:attr(data-placeholder);color:var(--ink-soft);font-style:italic;}
+.pickable{
+  cursor:pointer;border-bottom:1.5px dotted var(--plum-soft);border-radius:3px;
+  padding:0 2px;margin:0 -2px;transition:background .13s, border-color .13s;
+}
+.pickable:hover{background:var(--gold-bg);border-bottom-color:var(--gold);}
+.edit-hint{
+  font-size:11px;color:var(--ink-soft);text-align:center;padding:7px 0 0;font-style:italic;
+}
+
+/* ---------- stat block ---------- */
+.sticky{position:sticky;top:22px;}
+.block{
+  background:var(--card);border:2px solid var(--ink);border-radius:var(--r);
+  box-shadow:var(--shadow-lift);overflow:hidden;
+}
+.block-head{padding:20px 22px 18px;border-bottom:2px solid var(--ink);background:var(--card-2);}
+.block-name{font-size:32px;font-weight:800;letter-spacing:-.02em;line-height:1.06;}
+.block-class{
+  font-size:12.5px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--gold);margin-top:7px;
+}
+.block-motives{font-size:14.5px;color:var(--ink-soft);font-style:italic;margin-top:10px;line-height:1.45;}
+.block-body{padding:18px 22px 22px;}
+
+.statline{
+  display:flex;flex-wrap:wrap;gap:14px 26px;padding-bottom:17px;margin-bottom:17px;
+  border-bottom:1.5px solid var(--line);font-variant-numeric:tabular-nums;
+}
+/* Label and value are addressed by class, never by tag. A bare `.statline span`
+   rule also catches the editable spans nested inside the value. */
+.stat{display:flex;flex-direction:column;gap:3px;}
+.stat-label{
+  font-size:11px;font-weight:900;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-soft);
+}
+.stat-val{
+  font-family:"Fraunces",serif;font-size:27px;font-weight:800;line-height:1.02;letter-spacing:-.015em;
+  white-space:nowrap;
+}
+.stat-sep{color:var(--ink-soft);font-weight:400;padding:0 2px;}
+
+.atkline{font-size:15.5px;margin-bottom:16px;line-height:1.55;}
+.atkline strong{font-weight:900;}
+
+.feat{padding:13px 0;border-top:1.5px solid var(--line);position:relative;}
+.feat:first-of-type{border-top:0;padding-top:0;}
+.feat-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding-right:28px;}
+.feat-name{font-family:"Fraunces",serif;font-weight:600;font-size:18px;}
+.feat-text{font-size:14px;color:var(--ink-soft);line-height:1.5;margin-top:4px;}
+.feat-x{
+  position:absolute;top:8px;right:0;width:22px;height:22px;border-radius:50%;
+  border:1.5px solid var(--line-strong);background:var(--card);cursor:pointer;
+  color:var(--ink-soft);font-size:13px;line-height:1;display:grid;place-items:center;
+  transition:all .13s;
+}
+.feat-x:hover{background:var(--bad);border-color:var(--bad);color:var(--on-accent);}
+.feat:first-of-type .feat-x{top:-1px;}
+.no-feats{color:var(--ink-soft);font-size:13px;font-style:italic;padding:6px 0;}
+
+.block-foot{
+  display:flex;gap:8px;padding:14px 18px;border-top:2px solid var(--ink);background:var(--card-2);
+}
+.primary{
+  flex:1;background:var(--gold-bright);color:#3A1F63;border:0;border-radius:var(--r-sm);
+  padding:11px 14px;cursor:pointer;font-weight:900;font-size:13.5px;letter-spacing:.02em;
+  transition:filter .15s, transform .12s;
+}
+.primary:hover{filter:brightness(1.1);transform:translateY(-1px);}
+
+.budget{
+  margin-top:16px;padding:14px 16px;background:var(--card);border:1.5px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--shadow);
+}
+.budget h3{font-size:15px;font-weight:600;margin-bottom:3px;}
+.budget p{font-size:12.5px;color:var(--ink-soft);margin:0 0 11px;}
+.budget-row{display:flex;align-items:center;gap:11px;}
+.budget-row .stepper{flex:1;}
+.budget-out{font-size:13px;line-height:1.45;margin-top:10px;font-variant-numeric:tabular-nums;}
+.budget-out b{font-family:"Fraunces",serif;font-size:17px;font-weight:800;color:var(--plum);}
+
+/* ---------- roster ---------- */
+.roster{display:flex;flex-wrap:wrap;gap:9px;}
+.rcard{
+  display:flex;align-items:center;gap:9px;background:var(--card-2);
+  border:1.5px solid var(--line);border-radius:99px;padding:6px 7px 6px 12px;
+}
+.rcard-new{
+  border-color:var(--gold);background:var(--gold-bg);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--gold) 22%, transparent);
+}
+.rflag{
+  font-size:10px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;
+  background:var(--gold-bright);color:#3A1F63;padding:3px 8px;border-radius:99px;white-space:nowrap;
+}
+.rflag-quiet{background:var(--card);color:var(--ink-soft);border:1.5px solid var(--line-strong);}
+.rtime{font-size:11px;color:var(--ink-soft);font-weight:600;white-space:nowrap;}
+.rdel.armed, .ab-del.armed{
+  width:auto !important;border-radius:99px;padding:0 10px;height:22px;
+  background:var(--bad) !important;border-color:var(--bad) !important;color:var(--on-accent) !important;
+  font-size:10.5px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;
+}
+.rcard button{border:0;background:transparent;cursor:pointer;font-weight:700;}
+.rload{font-size:13.5px;color:var(--ink);padding:0;}
+.rload:hover{color:var(--plum);text-decoration:underline;}
+.rmeta{font-size:11px;color:var(--ink-soft);font-weight:700;}
+.rdel{
+  width:21px;height:21px;border-radius:50%;border:1.5px solid var(--line-strong) !important;
+  background:var(--card) !important;color:var(--ink-soft);font-size:12px;line-height:1;
+  display:grid;place-items:center;flex-shrink:0;
+}
+.rdel:hover{background:var(--bad) !important;border-color:var(--bad) !important;color:var(--on-accent);}
+.empty{color:var(--ink-soft);font-size:13px;font-style:italic;}
+
+.srdnote{
+  margin-top:26px;padding:15px 18px;border-radius:var(--r);
+  background:var(--card-2);border:1.5px solid var(--line);
+  font-size:12.5px;color:var(--ink-soft);line-height:1.6;
+}
+.srdnote strong{color:var(--ink);}
+
+.sheet{
+  position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:24px;
+  background:rgba(20,10,32,.62);backdrop-filter:blur(3px);
+}
+.sheet[hidden]{display:none;}
+.sheet-inner{
+  background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow-lift);max-width:min(860px,94vw);max-height:92vh;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sheet-head{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:15px 18px;border-bottom:1.5px solid var(--line);
+}
+.sheet-head h3{font-size:18px;font-weight:600;}
+.sheet-img{padding:18px;overflow:auto;background:var(--card-2);display:grid;place-items:center;}
+.sheet-img img{max-width:100%;height:auto;display:block;border-radius:8px;box-shadow:var(--shadow);}
+.sheet-foot{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:14px 18px;border-top:1.5px solid var(--line);
+}
+.sheet-foot .primary{flex:0 0 auto;}
+.sheet-note{font-size:12.5px;color:var(--ink-soft);}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition:none !important;animation:none !important;}
+}
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <h1>Adversary <em>Forge</em></h1>
+      <p class="tagline">Pick a role, pick a tier, get a stat block that sits inside the SRD benchmarks. Every number stays editable, and it tells you when you have wandered off.</p>
+    </div>
+    <div class="masthead-side">
+      <button class="ghost" id="themeBtn" type="button">Theme</button>
+      <button class="ghost" id="resetBtn" type="button">Reset to suggested</button>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div>
+
+      <section class="panel">
+        <div class="panel-head"><span class="step">Role</span><h2>What kind of thing is it?</h2></div>
+        <p class="panel-note">The role sets the shape of the stat block and what it costs in Battle Points.</p>
+        <div class="typegrid" id="typegrid"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><span class="step">Tier</span><h2>Who is it fighting?</h2></div>
+        <p class="panel-note">Tier follows party level, and it drives every benchmark below.</p>
+        <div class="tiers" id="tiers"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><span class="step">Identity</span><h2>Name and motives</h2></div>
+        <p class="panel-note">Motives and Tactics are verbs. They tell you how it behaves when you are not sure what it would do. The suggestions are the real ones from the SRD's example adversaries, sorted by role.</p>
+        <div class="field-row">
+          <div class="field">
+            <label for="nameIn">Name</label>
+            <input class="textin" id="nameIn" type="text" placeholder="Nameless thing">
+            <div class="chips"><button class="chip" id="rollName" type="button">Roll a name</button></div>
+          </div>
+          <div class="field">
+            <label for="motiveIn">Motives &amp; Tactics</label>
+            <textarea class="textin" id="motiveIn" placeholder="Verbs, comma separated"></textarea>
+            <div class="chips"><button class="chip" id="rollMotive" type="button">Suggest for this role</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><span class="step">Stats</span><h2>The numbers</h2></div>
+        <p class="panel-note">Suggested values already include the role adjustment. Push them around freely, the range under each one is guidance and not a wall.</p>
+        <div class="field-row" id="statfields"></div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="atkNameIn">Standard attack</label>
+          <input class="textin" id="atkNameIn" type="text" placeholder="Weapon or attack name">
+        </div>
+        <div class="field-row" style="margin-top:13px;">
+          <div class="field">
+            <label>Range</label>
+            <div class="parpick" id="rangePick"></div>
+          </div>
+          <div class="field">
+            <label>Damage type</label>
+            <div class="parpick" id="dtypePick"></div>
+          </div>
+        </div>
+        <div class="field" style="margin-top:13px;">
+          <label for="dmgIn">Damage dice</label>
+          <input class="textin" id="dmgIn" type="text" placeholder="1d8+3">
+          <div class="chips" id="dmgchips"></div>
+        </div>
+
+        <div class="band-wrap" id="bandWrap"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><span class="step">Features</span><h2>What can it actually do?</h2></div>
+        <p class="panel-note">Filtered to this role, with the universal ones underneath. Click to add. Everything here is Passive, Action or Reaction, and anything you write yourself has to pick one too.</p>
+        <div class="abfilter" id="abfilter"></div>
+        <div class="maker">
+          <div class="maker-head">
+            <h3 class="display">Write your own</h3>
+            <button class="chip" id="makerToggle" type="button">Open</button>
+          </div>
+          <div class="maker-body" id="makerBody" hidden>
+            <div class="field-row">
+              <div class="field">
+                <label for="cfName">Name</label>
+                <input class="textin" id="cfName" type="text" placeholder="Grasping Roots">
+              </div>
+              <div class="field">
+                <label>Passive, Action or Reaction</label>
+                <div class="parpick" id="cfKind"></div>
+              </div>
+            </div>
+            <div class="field" style="margin-top:13px;">
+              <label>Cost</label>
+              <div class="parpick" id="cfCost"></div>
+            </div>
+            <div class="field" style="margin-top:13px;">
+              <label for="cfText">What it does</label>
+              <textarea class="textin" id="cfText" placeholder="Every PC who ends their turn within Close range must mark a Stress or be Restrained."></textarea>
+            </div>
+            <div class="chips" style="margin-top:13px;">
+              <button class="chip chip-solid" id="cfAdd" type="button">Add to this adversary</button>
+              <button class="chip" id="cfSave" type="button">Save to my library</button>
+            </div>
+          </div>
+        </div>
+        <div class="ablist" id="ablist"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><span class="step">Saved</span><h2>Your roster</h2></div>
+        <p class="panel-note">Kept in this browser only. Clearing site data clears the lot.</p>
+        <div class="roster" id="roster"></div>
+      </section>
+
+      <div class="srdnote">
+        <strong>On the numbers.</strong> Tier benchmarks and ranges for Difficulty, thresholds, HP, Stress, attack modifier and damage dice come from the Daggerheart System Reference Document 1.0, along with the ten roles, the Battle Points costs, the attack ranges, and the Motives and Tactics suggestions, which are the lines from the SRD's own example adversaries. The per-role adjustments on top of those benchmarks are this tool's own opinion, not SRD text, and the feature library is written fresh rather than copied. Treat every suggestion as a starting point.
+        <br><br>
+        This tool includes materials from the Daggerheart System Reference Document 1.0, &copy; Critical Role, LLC, under the terms of the Darrington Press Community Gaming License. Compatible with Daggerheart. Not official, not endorsed.
+      </div>
+
+    </div>
+
+    <div class="sticky">
+      <div class="block">
+        <div class="block-head">
+          <div class="block-name display" id="outName">Nameless thing</div>
+          <div class="block-class" id="outClass">Tier 1 Standard</div>
+          <div class="block-motives" id="outMotives"></div>
+        </div>
+        <div class="block-body">
+          <div class="statline" id="outStats"></div>
+          <div class="atkline" id="outAtk"></div>
+          <div id="outFeats"></div>
+        </div>
+        <div class="block-foot">
+          <button class="primary" id="copyBtn" type="button">Copy text</button>
+          <button class="primary" id="pngBtn" type="button">Save PNG</button>
+          <button class="ghost" id="saveBtn" type="button">Keep</button>
+        </div>
+      </div>
+      <p class="edit-hint">Click anything above to type over it. Dotted underlines and tags cycle through their options.</p>
+
+      <div class="budget">
+        <h3>Encounter budget</h3>
+        <p>Battle Points are 3 per PC plus 2. This one costs <b id="thisCost">2</b>.</p>
+        <div class="budget-row">
+          <div class="stepper">
+            <button type="button" data-pc="-1">&minus;</button>
+            <input id="pcIn" type="text" value="4" inputmode="numeric">
+            <button type="button" data-pc="1">+</button>
+          </div>
+          <span class="hint">players</span>
+        </div>
+        <div class="budget-out" id="budgetOut"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="pngSheet" hidden>
+  <div class="sheet-inner" role="dialog" aria-modal="true" aria-label="Stat block image">
+    <div class="sheet-head">
+      <h3 class="display">Stat block image</h3>
+      <button class="ghost" id="pngClose" type="button">Close</button>
+    </div>
+    <div class="sheet-img"><img id="pngImg" alt="The finished stat block"></div>
+    <div class="sheet-foot">
+      <button class="primary" id="pngDownload" type="button">Download</button>
+      <button class="ghost" id="pngCopy" type="button">Copy image</button>
+      <span class="sheet-note">Or right-click the image and save it.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ SRD tier benchmarks ============
+   Ranges and benchmarks from Daggerheart SRD 1.0 adversary guidance. */
+var TIERS = {
+  1:{levels:"Level 1",      diff:[10,14,11], major:[3,10,7],   severe:[8,18,12],  hp:[3,8,5],  stress:[1,3,2], atk:[0,3,1],
+     dmg:["1d6+2","1d8+3","1d12+4"]},
+  2:{levels:"Levels 2-4",   diff:[12,16,14], major:[7,14,10],  severe:[14,25,20], hp:[4,10,6], stress:[2,4,3], atk:[1,5,2],
+     dmg:["2d6+3","2d8+3","2d12+4"]},
+  3:{levels:"Levels 5-7",   diff:[15,19,17], major:[10,20,16], severe:[22,40,32], hp:[5,12,7], stress:[3,5,4], atk:[3,7,4],
+     dmg:["3d8+3","3d10+4","3d12+5"]},
+  4:{levels:"Levels 8-10",  diff:[17,21,20], major:[18,35,25], severe:[35,65,45], hp:[5,14,8], stress:[4,6,5], atk:[5,10,6],
+     dmg:["4d8+10","4d10+12","4d12+15"]}
+};
+
+/* ============ Roles ============
+   Names, descriptions and Battle Point costs from the SRD.
+   The stat deltas are this tool's own tuning. */
+var ROLES = {
+  standard:{name:"Standard", bp:2, desc:"Representative of its kind. The baseline.",
+    d:{}, range:"Close", atkName:"Blade", auto:[]},
+  minion:{name:"Minion", bp:1, desc:"Drops to any damage. Dangerous in a crowd.",
+    d:{hp:"=1", stress:"=1", diff:-1, major:"none", severe:"none"}, range:"Melee", atkName:"Claws", auto:["minion"],
+    breaks:{hp:"Minions always have 1 HP", stress:"Minions run on a single Stress"}},
+  horde:{name:"Horde", bp:2, desc:"Many bodies acting as one unit.",
+    d:{hp:1}, range:"Very Close", atkName:"Countless hands", auto:["horde"]},
+  bruiser:{name:"Bruiser", bp:3, desc:"Tough, and hits like a falling tree.",
+    d:{hp:3, major:3, severe:5, atk:1}, range:"Melee", atkName:"Heavy maul", auto:[]},
+  leader:{name:"Leader", bp:3, desc:"Commands and summons the others.",
+    d:{hp:1, stress:1, diff:1}, range:"Close", atkName:"Officer's blade", auto:["command"]},
+  ranged:{name:"Ranged", bp:2, desc:"Deadly at distance, fragile up close.",
+    d:{hp:-2, major:-2, severe:-3, atk:1}, range:"Far", atkName:"Longbow", auto:[]},
+  skulk:{name:"Skulk", bp:2, desc:"Ambushes, then is somewhere else.",
+    d:{hp:-1, diff:1}, range:"Melee", atkName:"Hidden knife", auto:[]},
+  social:{name:"Social", bp:2, desc:"The fight is a conversation.",
+    d:{hp:-2, stress:1, diff:1, atk:-1}, range:"Close", atkName:"Cutting remark", dtype:"phy", auto:[]},
+  solo:{name:"Solo", bp:5, desc:"A whole encounter on its own.",
+    d:{hp:5, stress:2, diff:1, major:2, severe:4}, range:"Very Close", atkName:"Rending strike", auto:["relentless"],
+    breaks:{hp:"Solos are built to outlast the whole party", stress:"Solos carry extra Stress on purpose"}},
+  support:{name:"Support", bp:2, desc:"Props up its allies, drags on yours.",
+    d:{hp:-1, stress:1}, range:"Far", atkName:"Warped bolt", dtype:"mag", auto:[]}
+};
+
+/* ============ Feature library ============ */
+var FEATS = [
+  /* auto-attached */
+  {id:"minion", n:"Minion (X)", k:"Passive", c:"", r:["minion"], t:"This adversary is defeated the moment it takes any damage. When a PC deals X or more damage to it, defeat one additional Minion within Very Close range for every X damage dealt."},
+  {id:"horde", n:"Horde (X)", k:"Passive", c:"", r:["horde"], t:"When this adversary has marked half or more of its Hit Points, its standard attack deals X damage instead."},
+  {id:"relentless", n:"Relentless (X)", k:"Passive", c:"", r:["solo"], t:"This adversary can be spotlighted up to X times per GM turn. Spend Fear as usual to spotlight it."},
+  {id:"command", n:"Command", k:"Action", c:"Fear", r:["leader"], t:"Spend a Fear to spotlight an allied adversary within Far range. It acts immediately, then the spotlight returns here."},
+
+  /* universal */
+  {id:"momentum", n:"Momentum", k:"Passive", c:"", r:["*"], t:"When this adversary succeeds on an attack against a PC, you gain a Fear."},
+  {id:"terrifying", n:"Terrifying", k:"Passive", c:"", r:["*"], t:"When this adversary succeeds on an attack against a PC, that PC loses a Hope."},
+  {id:"hardened", n:"Hardened", k:"Passive", c:"", r:["*"], t:"When this adversary would mark Hit Points, it marks one fewer, to a minimum of one."},
+  {id:"direct", n:"Direct Damage", k:"Passive", c:"", r:["*"], t:"Damage from this adversary's standard attack is dealt directly to Hit Points and ignores armor."},
+  {id:"arcaneward", n:"Arcane Ward", k:"Passive", c:"", r:["*"], t:"Reduce all magic damage this adversary takes by half, rounded down."},
+  {id:"throes", n:"Death Throes", k:"Reaction", c:"", r:["*"], t:"When this adversary is defeated, it deals its standard damage to every creature within Very Close range."},
+  {id:"unnerving", n:"Unnerving", k:"Action", c:"Stress", r:["*"], t:"Mark a Stress. Every PC within Close range must succeed on a Presence Reaction Roll or mark a Stress."},
+  {id:"reposition", n:"Reposition", k:"Reaction", c:"Stress", r:["*"], t:"When a PC moves within Melee range, mark a Stress to move this adversary anywhere within Close range first."},
+
+  /* bruiser */
+  {id:"crushing", n:"Crushing Blow", k:"Action", c:"Fear", r:["bruiser"], t:"Spend a Fear. Attack one target within Melee range. On a success, deal your standard damage plus one extra damage die and knock the target back to Close range."},
+  {id:"wideswing", n:"Wide Swing", k:"Action", c:"Stress", r:["bruiser"], t:"Mark a Stress. Make one attack roll against every target within Very Close range."},
+  {id:"soakit", n:"Soak It", k:"Reaction", c:"", r:["bruiser"], t:"Once per scene, when this adversary would mark Hit Points, it may mark two Stress instead."},
+  {id:"bloodied", n:"Bloodied Fury", k:"Passive", c:"", r:["bruiser"], t:"While half or more of this adversary's Hit Points are marked, its attacks deal one extra damage die."},
+  {id:"groundslam", n:"Ground Slam", k:"Action", c:"2 Fear", r:["bruiser"], t:"Spend two Fear. Every PC within Close range makes an Agility Reaction Roll. On a failure they take half the standard damage and are knocked prone."},
+
+  /* horde */
+  {id:"swarmover", n:"Swarm Over", k:"Action", c:"Stress", r:["horde"], t:"Mark a Stress to move up to Far range, ignoring difficult terrain and other creatures, then make a standard attack."},
+  {id:"overwhelm", n:"Overwhelm", k:"Passive", c:"", r:["horde","minion"], t:"This adversary's attacks deal one extra damage die for each allied adversary within Melee range of the same target."},
+  {id:"splitoff", n:"Split Off", k:"Reaction", c:"Fear", r:["horde"], t:"When this adversary marks Hit Points from a single attack, spend a Fear to place two Minions of the same tier within Close range."},
+  {id:"risingtide", n:"Rising Tide", k:"Action", c:"Fear", r:["horde","leader"], t:"Spend a Fear to place a Minion of this adversary's tier within Close range."},
+
+  /* leader */
+  {id:"rally", n:"Rally Cry", k:"Action", c:"Fear", r:["leader","support"], t:"Spend a Fear. Every allied adversary within Far range clears a Stress and gains a +2 bonus to their next attack roll."},
+  {id:"withdraw", n:"Tactical Withdrawal", k:"Reaction", c:"Fear", r:["leader"], t:"When an allied adversary within Close range is targeted, spend a Fear to move it anywhere within Far range. The attack misses."},
+  {id:"markthem", n:"Mark the Target", k:"Action", c:"", r:["leader","ranged"], t:"Choose a PC within Far range. Until the end of the next GM turn, attacks against that PC gain a +3 bonus."},
+  {id:"presence", n:"Inspiring Presence", k:"Passive", c:"", r:["leader"], t:"Allied adversaries within Close range gain a +1 bonus to their attack rolls and their Difficulty."},
+
+  /* minion */
+  {id:"groupatk", n:"Group Attack", k:"Action", c:"", r:["minion"], t:"Any number of Minions within Very Close range of the target combine into one attack roll. On a success, deal the standard damage of a single Minion for each Minion in the group."},
+  {id:"expendable", n:"Expendable", k:"Reaction", c:"", r:["minion"], t:"When an allied adversary within Very Close range is hit, this Minion may be defeated instead. The attack deals no damage."},
+  {id:"skittish", n:"Skittish", k:"Passive", c:"", r:["minion"], t:"When half or more of this Minion's group has been defeated, the rest flee unless a Leader is within Far range."},
+
+  /* ranged */
+  {id:"takeaim", n:"Take Aim", k:"Action", c:"Stress", r:["ranged","skulk"], t:"Mark a Stress. This adversary's next attack this scene gains a +3 bonus and deals one extra damage die."},
+  {id:"suppress", n:"Suppressing Fire", k:"Action", c:"Fear", r:["ranged"], t:"Spend a Fear to cover an area within Far range until the end of the next GM turn. Any PC who moves through it takes half the standard damage."},
+  {id:"fallback", n:"Fall Back", k:"Reaction", c:"", r:["ranged"], t:"When a PC moves within Melee range, this adversary may immediately move to Close range without provoking anything."},
+  {id:"pinning", n:"Pinning Shot", k:"Action", c:"Fear", r:["ranged"], t:"Spend a Fear. On a successful attack, the target is Restrained until they mark a Stress to break free."},
+  {id:"volley", n:"Volley", k:"Action", c:"Fear", r:["ranged"], t:"Spend a Fear. Make one attack roll against every target within Close range of a point you choose in Far range."},
+
+  /* skulk */
+  {id:"ambush", n:"Ambush", k:"Passive", c:"", r:["skulk"], t:"When this adversary attacks a target that is unaware of it, the attack gains a +3 bonus and deals one extra damage die."},
+  {id:"vanish", n:"Vanish", k:"Action", c:"Stress", r:["skulk"], t:"Mark a Stress to become Hidden, even while observed. It remains Hidden until it attacks or is revealed."},
+  {id:"backstab", n:"Backstab", k:"Passive", c:"", r:["skulk"], t:"This adversary's attacks deal one extra damage die against a target that has an allied adversary within Melee range."},
+  {id:"poisoned", n:"Poisoned Blade", k:"Passive", c:"", r:["skulk"], t:"On a successful attack, the target must mark a Stress in addition to taking damage."},
+  {id:"shadowstep", n:"Shadowstep", k:"Action", c:"Fear", r:["skulk"], t:"Spend a Fear to move this adversary from one shadow to any other within Far range, then make a standard attack."},
+
+  /* social */
+  {id:"readroom", n:"Read the Room", k:"Passive", c:"", r:["social"], t:"After one exchange with the party, the GM may name one Experience belonging to each PC present."},
+  {id:"silvertongue", n:"Silver Tongue", k:"Action", c:"Fear", r:["social"], t:"Spend a Fear. Target a PC within Close range. They make a Presence Reaction Roll. On a failure, they reveal something they meant to keep quiet."},
+  {id:"reputation", n:"Reputation", k:"Passive", c:"", r:["social"], t:"PCs take a -2 penalty on rolls made to discredit, intimidate or expose this adversary in front of others."},
+  {id:"turncrowd", n:"Turn the Crowd", k:"Action", c:"Fear", r:["social"], t:"Spend a Fear. Everyone watching sides with this adversary. Until the scene changes, PCs take a -2 penalty on all Presence Rolls made in public."},
+  {id:"deflect", n:"Deflect", k:"Reaction", c:"Stress", r:["social"], t:"When accused or cornered, mark a Stress to redirect the accusation convincingly onto another NPC present."},
+
+  /* solo */
+  {id:"secondwind", n:"Second Wind", k:"Reaction", c:"Fear", r:["solo"], t:"The first time this adversary marks half or more of its Hit Points, spend a Fear. It clears all Stress and its Difficulty increases by 2 for the rest of the scene."},
+  {id:"arena", n:"Reshape the Ground", k:"Action", c:"2 Fear", r:["solo"], t:"Spend two Fear to change the battlefield. Create, destroy or move one significant feature of the environment, and every PC within Close range must make an Agility Reaction Roll or take half the standard damage."},
+  {id:"shrugoff", n:"Shrug It Off", k:"Reaction", c:"Fear", r:["solo"], t:"When this adversary would mark Hit Points, spend a Fear to reduce the damage by one threshold band, to a minimum of one Hit Point."},
+  {id:"sweeping", n:"Sweeping Presence", k:"Action", c:"Fear", r:["solo"], t:"Spend a Fear. Make one attack roll against every PC within Close range."},
+
+  /* support */
+  {id:"mend", n:"Mend", k:"Action", c:"Fear", r:["support"], t:"Spend a Fear. An allied adversary within Far range clears two marked Hit Points."},
+  {id:"bolster", n:"Bolster", k:"Action", c:"Stress", r:["support"], t:"Mark a Stress. An allied adversary within Far range gains a +3 bonus to its next attack roll and deals one extra damage die."},
+  {id:"hex", n:"Hex", k:"Action", c:"Fear", r:["support"], t:"Spend a Fear. Target a PC within Far range. They take a -2 penalty on all rolls until they mark a Stress to shake it off."},
+  {id:"shieldally", n:"Shield an Ally", k:"Reaction", c:"Stress", r:["support"], t:"When an allied adversary within Close range takes damage, mark a Stress to take that damage instead."},
+  {id:"dispel", n:"Unmake", k:"Action", c:"Fear", r:["support"], t:"Spend a Fear to end one beneficial effect currently active on a PC within Far range."},
+
+  /* standard */
+  {id:"reliable", n:"Reliable Strike", k:"Passive", c:"", r:["standard"], t:"When rolling this adversary's damage, reroll any result of 1 once."},
+  {id:"press", n:"Press the Advantage", k:"Passive", c:"", r:["standard"], t:"This adversary's attacks deal one extra damage die against a target who is Vulnerable."},
+  {id:"digin", n:"Dig In", k:"Action", c:"Stress", r:["standard"], t:"Mark a Stress. This adversary's Difficulty increases by 3 until the end of the next GM turn, but it cannot move."},
+  {id:"callhelp", n:"Call for Help", k:"Action", c:"Fear", r:["standard"], t:"Spend a Fear. Place two Minions of this adversary's tier anywhere within Far range."}
+];
+
+/* SRD attack ranges, closest first. */
+var RANGES = ["Melee","Very Close","Close","Far","Very Far"];
+/* SRD damage is physical or magic, and armor and resistances care which. */
+var DTYPES = [{k:"phy", label:"Physical"},{k:"mag", label:"Magic"}];
+
+/* Motives and Tactics taken from the example adversaries in the SRD, grouped by role.
+   The button walks through them rather than handing you the same line every time. */
+
+/* ============ SRD example features ============
+   Drawn from the example adversaries in the SRD, so the suggestions for each role
+   are the ones the game itself uses. Rules text is rewritten rather than copied;
+   `src` names the adversary it came from. */
+var SRD_FEATS = [
+  {id:"s_shieldwall", n:"Shield Wall", k:"Passive", c:"", r:["standard"], src:"Bladed Guard", t:"A creature trying to move within Very Close range must first succeed on an Agility Roll against this adversary's Difficulty."},
+  {id:"s_detain", n:"Detain", k:"Action", c:"Stress", r:["standard"], src:"Bladed Guard", t:"Mark a Stress and attack a target within Melee range. On a success, the target is Restrained until they break free."},
+  {id:"s_toomany", n:"Too Many to Handle", k:"Passive", c:"", r:["standard","horde"], src:"Shambling Zombie", t:"This adversary attacks with advantage while another of its kind is within Melee range of the same target."},
+  {id:"s_horrifying", n:"Horrifying", k:"Passive", c:"", r:["standard"], src:"Shambling Zombie", t:"When this adversary succeeds on an attack, the target must also mark a Stress."},
+  {id:"s_onlybones", n:"Only Bones", k:"Passive", c:"", r:["standard"], src:"Skeleton Warrior", t:"This adversary is resistant to physical damage. Halve all physical damage it takes."},
+  {id:"s_wontstay", n:"Won't Stay Dead", k:"Reaction", c:"", r:["standard"], src:"Skeleton Warrior", t:"When this adversary is defeated, roll a d6. On a 6 it reassembles at the end of the GM turn with 1 Hit Point unmarked."},
+  {id:"s_maintain", n:"Maintain Distance", k:"Passive", c:"", r:["standard","ranged"], src:"Harrier", t:"After making its standard attack, this adversary may immediately move up to Far range away."},
+  {id:"s_shards", n:"Armor-Shredding Shards", k:"Passive", c:"", r:["standard"], src:"Glass Snake", t:"When a PC attacks this adversary from Melee range, they must mark an Armor Slot without gaining its benefit."},
+
+  {id:"s_groupatk", n:"Group Attack", k:"Action", c:"Fear", r:["minion"], src:"Giant Rat", t:"Spend a Fear. Every Minion within Very Close range of one target joins a single attack roll, dealing one Minion's damage for each of them."},
+  {id:"s_drainmult", n:"Drain and Multiply", k:"Reaction", c:"", r:["minion"], src:"Tangle Bramble", t:"When three or more of these Minions occupy the same space, they may combine into a single Horde adversary of the same tier."},
+
+  {id:"s_flying", n:"Flying", k:"Passive", c:"", r:["horde","skulk"], src:"Giant Mosquitoes", t:"While airborne, this adversary gains a +2 bonus to its Difficulty."},
+  {id:"s_bloodsucker", n:"Bloodsucker", k:"Reaction", c:"Stress", r:["horde"], src:"Giant Mosquitoes", t:"When this adversary succeeds on an attack, mark a Stress to force the target to mark an additional Hit Point."},
+  {id:"s_inyourface", n:"In Your Face", k:"Passive", c:"", r:["horde"], src:"Swarm of Rats", t:"A target within Melee range of this adversary has disadvantage on attacks against anything else."},
+  {id:"s_swashbuckler", n:"Swashbuckler", k:"Passive", c:"", r:["horde","bruiser","leader"], src:"Pirate Raiders", t:"When a PC deals damage to this adversary below its Major threshold, that PC must mark a Stress."},
+  {id:"s_crush", n:"Crush", k:"Action", c:"Stress", r:["horde"], src:"Tangle Bramble Swarm", t:"Mark a Stress and attack a Restrained target. On a success, deal your standard damage plus one extra damage die."},
+  {id:"s_overwhelm", n:"Overwhelm", k:"Reaction", c:"Stress", r:["horde"], src:"Zombie Pack", t:"When a PC within Melee range succeeds on an attack against this adversary, mark a Stress to immediately attack them back."},
+  {id:"s_encumber", n:"Encumber", k:"Reaction", c:"", r:["horde"], src:"Tangle Bramble Swarm", t:"When this adversary succeeds on an attack, place a token on the target. At two tokens they are Restrained, at three they are also Vulnerable."},
+
+  {id:"s_overforce", n:"Overwhelming Force", k:"Passive", c:"", r:["bruiser"], src:"Bear", t:"A target who marks any Hit Points from this adversary's attack is knocked back to Very Close range."},
+  {id:"s_bite", n:"Bite", k:"Action", c:"Stress", r:["bruiser"], src:"Bear", t:"Mark a Stress and attack a target within Melee range. On a success, the target is Restrained in its jaws."},
+  {id:"s_gslam", n:"Ground Slam", k:"Action", c:"", r:["bruiser"], src:"Deeproot Defender", t:"Attack every target within Very Close range. Those who take damage are knocked back to Close range."},
+  {id:"s_grabdrag", n:"Grab and Drag", k:"Action", c:"Fear", r:["bruiser"], src:"Deeproot Defender", t:"Spend a Fear. Attack a target within Close range. On a success, deal your standard damage, pull them to Melee range and Restrain them."},
+  {id:"s_doublestrike", n:"Double Strike", k:"Action", c:"Stress", r:["bruiser"], src:"Giant Scorpion", t:"Mark a Stress to attack two different targets within Melee range with a single roll."},
+  {id:"s_venom", n:"Venomous Stinger", k:"Action", c:"Fear", r:["bruiser","skulk"], src:"Giant Scorpion", t:"Spend a Fear. On a successful attack, the target is poisoned and must mark a Stress at the start of each of their turns until they are treated."},
+  {id:"s_cuttobone", n:"Cut to the Bone", k:"Action", c:"Stress", r:["bruiser"], src:"Skeleton Knight", t:"Mark a Stress and make one attack roll against every target within Very Close range."},
+  {id:"s_digtwo", n:"Dig Two Graves", k:"Reaction", c:"", r:["bruiser"], src:"Skeleton Knight", t:"When this adversary is defeated, it makes one final standard attack against a target within Melee range."},
+  {id:"s_goading", n:"Goading Strike", k:"Action", c:"Stress", r:["bruiser"], src:"Weaponmaster", t:"Mark a Stress and attack. On a success, the target must target this adversary with their next attack or mark a Stress."},
+  {id:"s_adrenaline", n:"Adrenaline Burst", k:"Action", c:"Fear", r:["bruiser"], src:"Weaponmaster", t:"Once per scene, spend a Fear to clear two marked Hit Points and all marked Stress."},
+  {id:"s_cleardecks", n:"Clear the Decks", k:"Action", c:"Stress", r:["bruiser"], src:"Pirate Tough", t:"Mark a Stress and attack every target within Melee range, knocking those who take damage back to Close range."},
+  {id:"s_gotem", n:"I've Got 'Em", k:"Passive", c:"", r:["bruiser"], src:"Jagged Knife Kneebreaker", t:"This adversary's attacks deal double damage to Restrained targets."},
+  {id:"s_holddown", n:"Hold Them Down", k:"Action", c:"", r:["bruiser"], src:"Jagged Knife Kneebreaker", t:"Attack a target within Melee range. On a success, deal no damage but the target is Restrained until they break free."},
+
+  {id:"s_rallyguards", n:"Rally the Ranks", k:"Action", c:"2 Fear", r:["leader"], src:"Head Guard", t:"Spend two Fear to spotlight this adversary and up to four allied adversaries within Far range."},
+  {id:"s_onmysignal", n:"On My Signal", k:"Reaction", c:"", r:["leader"], src:"Head Guard", t:"Countdown (5). When it triggers, every allied Ranged adversary within Far range immediately makes a standard attack."},
+  {id:"s_tactician", n:"Tactician", k:"Action", c:"Stress", r:["leader"], src:"Jagged Knife Lieutenant", t:"Mark a Stress to spotlight two allied adversaries within Far range."},
+  {id:"s_morewhere", n:"More Where That Came From", k:"Action", c:"", r:["leader"], src:"Jagged Knife Lieutenant", t:"Place three Minions of this adversary's tier anywhere within Close range."},
+  {id:"s_coup", n:"Coup de Grace", k:"Action", c:"Fear", r:["leader"], src:"Jagged Knife Lieutenant", t:"Spend a Fear and attack a Vulnerable target. On a success, deal your standard damage plus two extra damage dice."},
+  {id:"s_reinforce", n:"Reinforcements", k:"Action", c:"Stress", r:["leader"], src:"Pirate Captain", t:"Mark a Stress to place a Horde adversary of this adversary's tier anywhere within Far range."},
+  {id:"s_noquarter", n:"No Quarter", k:"Action", c:"Fear", r:["leader"], src:"Pirate Captain", t:"Spend a Fear. A target within Far range who can see this adversary and one of its allies must mark two Stress."},
+  {id:"s_moveunit", n:"Move as a Unit", k:"Action", c:"2 Fear", r:["leader"], src:"Spellblade", t:"Spend two Fear to spotlight up to five allied adversaries within Far range. They all move and act together."},
+  {id:"s_suppress", n:"Suppressing Blast", k:"Action", c:"Stress", r:["leader","ranged"], src:"Spellblade", t:"Mark a Stress and make one attack roll against every target within Close range. Gain a Fear if two or more are hit."},
+  {id:"s_arcanesteel", n:"Arcane Steel", k:"Passive", c:"", r:["leader"], src:"Spellblade", t:"This adversary's standard attack counts as both physical and magic damage."},
+  {id:"s_voiceforest", n:"Voice of the Forest", k:"Action", c:"Stress", r:["leader","support"], src:"Young Dryad", t:"Mark a Stress to spotlight an allied adversary within Far range and give a PC of your choice a -2 penalty to their next roll."},
+  {id:"s_thornycage", n:"Thorny Cage", k:"Action", c:"Fear", r:["leader"], src:"Young Dryad", t:"Spend a Fear. A target within Close range is Restrained by thorns and marks a Stress each turn until they break out."},
+
+  {id:"s_hobblingshot", n:"Hobbling Shot", k:"Action", c:"", r:["ranged"], src:"Archer Guard", t:"Attack a target within Far range. On a success, they have disadvantage on Agility Rolls until they clear a Stress."},
+  {id:"s_opportunist", n:"Opportunist", k:"Passive", c:"", r:["ranged"], src:"Skeleton Archer", t:"This adversary deals double damage to a target who has two or more adversaries within Melee range of them."},
+  {id:"s_deadlyshot", n:"Deadly Shot", k:"Action", c:"Stress", r:["ranged"], src:"Skeleton Archer", t:"Mark a Stress and attack a Vulnerable target within Far range, dealing your standard damage plus one extra damage die."},
+  {id:"s_unseenstrike", n:"Unseen Strike", k:"Passive", c:"", r:["ranged","skulk"], src:"Jagged Knife Sniper", t:"When attacking from Hidden, this adversary deals one extra damage die and stays Hidden on a miss."},
+  {id:"s_spitter", n:"Spitter", k:"Action", c:"Fear", r:["ranged"], src:"Glass Snake", t:"Spend a Fear to attack a target within Far range. On a success, they must also mark an Armor Slot without gaining its benefit."},
+
+  {id:"s_packtactics", n:"Pack Tactics", k:"Passive", c:"", r:["skulk"], src:"Dire Wolf", t:"This adversary deals one extra damage die while another of its kind is within Melee range of the same target."},
+  {id:"s_hobblingstrike", n:"Hobbling Strike", k:"Action", c:"Stress", r:["skulk"], src:"Dire Wolf", t:"Mark a Stress and attack. On a success, the damage is dealt directly to Hit Points and the target becomes Vulnerable."},
+  {id:"s_backstab2", n:"Backstab", k:"Passive", c:"", r:["skulk"], src:"Jagged Knife Shadow", t:"When this adversary attacks with advantage, it deals one extra damage die."},
+  {id:"s_cloaked", n:"Cloaked", k:"Action", c:"", r:["skulk"], src:"Jagged Knife Shadow", t:"This adversary becomes Hidden and stays Hidden until it makes an attack or is revealed."},
+  {id:"s_blendin", n:"Blend In", k:"Reaction", c:"Stress", r:["skulk"], src:"Sylvan Soldier", t:"After making an attack, mark a Stress to immediately become Hidden again."},
+  {id:"s_climber", n:"Climber", k:"Passive", c:"", r:["skulk"], src:"Jagged Knife Bandit", t:"This adversary climbs any surface as easily as it runs, and never needs a roll to do so."},
+  {id:"s_fromabove", n:"From Above", k:"Passive", c:"", r:["skulk"], src:"Jagged Knife Bandit", t:"When attacking from higher ground, this adversary deals one extra damage die."},
+
+  {id:"s_mockery", n:"Mockery", k:"Action", c:"Stress", r:["social"], src:"Courtier", t:"Mark a Stress. A target within Close range makes a Presence Reaction Roll. On a failure they mark two Stress."},
+  {id:"s_scapegoat", n:"Scapegoat", k:"Action", c:"Fear", r:["social"], src:"Courtier", t:"Spend a Fear to convincingly pin the current trouble on a PC. Everyone present believes it until proven otherwise."},
+  {id:"s_preferential", n:"Preferential Treatment", k:"Passive", c:"", r:["social"], src:"Merchant", t:"On a successful Presence Roll against this adversary, a PC gains a favourable price. On a failure, the price worsens instead."},
+  {id:"s_runaround", n:"The Runaround", k:"Passive", c:"", r:["social"], src:"Merchant", t:"When a PC rolls 14 or lower against this adversary, they mark a Stress as the conversation goes nowhere."},
+  {id:"s_mylandrules", n:"My Land, My Rules", k:"Passive", c:"", r:["social"], src:"Petty Noble", t:"Social actions taken against this adversary within their own territory are made with disadvantage."},
+  {id:"s_guardsseize", n:"Guards, Seize Them", k:"Action", c:"Stress", r:["social"], src:"Petty Noble", t:"Mark a Stress to place two Standard adversaries of this adversary's tier within Close range."},
+  {id:"s_exile", n:"Exile", k:"Action", c:"Fear", r:["social"], src:"Petty Noble", t:"Spend a Fear to declare a PC exiled. Every NPC loyal to this adversary now treats them as an outlaw."},
+
+  {id:"s_eartheruption", n:"Earth Eruption", k:"Action", c:"Stress", r:["solo"], src:"Acid Burrower", t:"Mark a Stress to burst from the ground. Every target within Very Close range is knocked prone and takes half your standard damage."},
+  {id:"s_spitacid", n:"Spit Acid", k:"Action", c:"", r:["solo"], src:"Acid Burrower", t:"Make one attack roll against every target in a line out to Close range. Those hit must also mark an Armor Slot."},
+  {id:"s_acidbath", n:"Acid Bath", k:"Reaction", c:"", r:["solo"], src:"Acid Burrower", t:"When this adversary takes damage at or above its Severe threshold, acid sprays over everything within Very Close range for half its standard damage."},
+  {id:"s_rampup", n:"Ramp Up", k:"Passive", c:"Fear", r:["solo"], src:"Cave Ogre", t:"Spend a Fear to spotlight this adversary. It attacks every target within Melee range at once."},
+  {id:"s_bonebreaker", n:"Bone Breaker", k:"Passive", c:"", r:["solo"], src:"Cave Ogre", t:"This adversary's damage is dealt directly to Hit Points and ignores armor."},
+  {id:"s_hailboulders", n:"Hail of Boulders", k:"Action", c:"Stress", r:["solo"], src:"Cave Ogre", t:"Mark a Stress to hurl debris at up to three targets within Far range with a single attack roll."},
+  {id:"s_rampaging", n:"Rampaging Fury", k:"Reaction", c:"", r:["solo"], src:"Cave Ogre", t:"When this adversary marks Hit Points, it may immediately move up to Far range, damaging every target it passes through."},
+  {id:"s_weakstructure", n:"Weak Structure", k:"Passive", c:"", r:["solo"], src:"Construct", t:"When this adversary takes physical damage, it marks one additional Hit Point."},
+  {id:"s_trample", n:"Trample", k:"Action", c:"Stress", r:["solo"], src:"Construct", t:"Mark a Stress to move up to Far range in a straight line, attacking every target in the path."},
+  {id:"s_overload", n:"Overload", k:"Reaction", c:"Stress", r:["solo"], src:"Construct", t:"When this adversary marks Hit Points, mark a Stress to take the spotlight again immediately with one extra damage die."},
+  {id:"s_deathquake", n:"Death Quake", k:"Reaction", c:"", r:["solo"], src:"Construct", t:"When this adversary is defeated it detonates, dealing its standard damage to every target within Close range."},
+  {id:"s_allmustfall", n:"All Must Fall", k:"Passive", c:"", r:["solo"], src:"Minor Demon", t:"A PC within Close range who rolls a failure with Fear also loses a Hope."},
+  {id:"s_hellfire", n:"Hellfire", k:"Action", c:"Fear", r:["solo"], src:"Minor Demon", t:"Spend a Fear. Every target within Close range makes an Agility Reaction Roll or takes your standard damage as fire."},
+  {id:"s_reaper", n:"Reaper", k:"Reaction", c:"Stress", r:["solo"], src:"Minor Demon", t:"Mark a Stress to add a bonus to this adversary's attack equal to the number of Hit Points it has marked."},
+  {id:"s_scorched", n:"Scorched Earth", k:"Action", c:"Stress", r:["solo"], src:"Minor Fire Elemental", t:"Mark a Stress to set an area within Close range alight. Anyone who enters or ends their turn there takes half your standard damage."},
+  {id:"s_explosion", n:"Explosion", k:"Action", c:"Fear", r:["solo"], src:"Minor Fire Elemental", t:"Spend a Fear. Every target within Very Close range takes your standard damage and is knocked back to Close range."},
+  {id:"s_consumekindling", n:"Consume Kindling", k:"Reaction", c:"", r:["solo"], src:"Minor Fire Elemental", t:"Up to three times per scene, this adversary consumes nearby fuel to clear a marked Hit Point."},
+  {id:"s_arcaneform", n:"Arcane Form", k:"Passive", c:"", r:["solo"], src:"Minor Chaos Elemental", t:"This adversary is resistant to magic damage. Halve all magic damage it takes."},
+  {id:"s_remakereality", n:"Remake Reality", k:"Action", c:"Fear", r:["solo"], src:"Minor Chaos Elemental", t:"Spend a Fear to transform the terrain within Far range into something else entirely. Every target caught in the change takes direct damage."},
+  {id:"s_magicreflect", n:"Magical Reflection", k:"Reaction", c:"", r:["solo"], src:"Minor Chaos Elemental", t:"When this adversary takes magic damage, roll a d6. On a 5 or 6 the attacker takes that damage instead."},
+  {id:"s_destructible", n:"Destructible", k:"Passive", c:"", r:["solo"], src:"Patchwork Zombie Hulk", t:"When this adversary takes damage at or above its Major threshold, it marks one additional Hit Point."},
+  {id:"s_flailing", n:"Flailing Limbs", k:"Passive", c:"", r:["solo"], src:"Patchwork Zombie Hulk", t:"This adversary's standard attack targets every creature within Melee range."},
+  {id:"s_anotherpile", n:"Another for the Pile", k:"Action", c:"", r:["solo"], src:"Patchwork Zombie Hulk", t:"This adversary absorbs a nearby corpse and clears a marked Hit Point."},
+  {id:"s_tormented", n:"Tormented Screams", k:"Action", c:"Stress", r:["solo"], src:"Patchwork Zombie Hulk", t:"Mark a Stress. Every PC within Far range makes a Presence Reaction Roll or loses a Hope."},
+
+  {id:"s_curse", n:"Curse", k:"Action", c:"", r:["support"], src:"Jagged Knife Hexer", t:"Curse a target within Far range. Until they clear it, their Hope and Fear dice results are swapped."},
+  {id:"s_chaoticflux", n:"Chaotic Flux", k:"Action", c:"Stress", r:["support"], src:"Jagged Knife Hexer", t:"Mark a Stress to attack up to three targets within Far range with a single roll."},
+  {id:"s_envelop", n:"Envelop", k:"Action", c:"", r:["support"], src:"Green Ooze", t:"Attack a target within Melee range. On a success they are Restrained and mark a Stress on every action roll until they escape."},
+  {id:"s_acidicform", n:"Acidic Form", k:"Passive", c:"", r:["support"], src:"Green Ooze", t:"On a successful attack, the target must mark an Armor Slot without gaining its benefit."},
+  {id:"s_split", n:"Split", k:"Reaction", c:"Fear", r:["support"], src:"Green Ooze", t:"When this adversary has three or more Hit Points marked, spend a Fear to divide it into two Minions of the same tier."},
+  {id:"s_ignite", n:"Ignite", k:"Action", c:"", r:["support"], src:"Red Ooze", t:"On a successful attack, the target catches fire and marks a Hit Point at the start of each turn until the flames are put out."},
+  {id:"s_creepingfire", n:"Creeping Fire", k:"Passive", c:"", r:["support"], src:"Red Ooze", t:"This adversary moves only at Very Close range, but ignites anything flammable it touches."}
+];
+
+var MOTIVES = {
+  standard:[
+    "Arrest, close gates, make it through the day, pin down",
+    "Climb, feed, keep distance, scare",
+    "Flank, harry, kite, profit",
+    "Escape, profit, steal, throw smoke",
+    "Devour, hungry, mob enemy, shred flesh",
+    "Feign death, gang up, steal skin",
+    "Ambush, hide, overwhelm, protect, trail",
+    "Gain glory, keep order, make alliances",
+    "Devour, hunt, track",
+    "Move through solid objects, protect treasure, rehash old battles"
+  ],
+  minion:[
+    "Burrow, hunger, scavenge, wear down",
+    "Escape, profit, throw smoke",
+    "Crush, overwhelm, protect",
+    "Eat flesh, hunger, maul, surround",
+    "Charge, lacerate, overwhelm, profit",
+    "Fall apart, overwhelm, play dead, steal skin",
+    "Combine, drain, entangle",
+    "Act reckless, kill, prove their worth, show off",
+    "Follow orders, gang up, survive",
+    "Follow orders, gain power, seek forbidden knowledge",
+    "Batter, make a living, overwhelm, terrify"
+  ],
+  horde:[
+    "Fly away, harass, steal blood",
+    "Gang up, plunder, raid",
+    "Consume, obscure, swarm",
+    "Digest, entangle, immobilize",
+    "Consume flesh, hunger, maul",
+    "Stick together, survive, volley fire",
+    "Cause fear, consume flesh, please masters",
+    "Avoid larger predators, shock prey, tear apart"
+  ],
+  bruiser:[
+    "Climb, defend territory, pummel, track",
+    "Crush, destroy, hail debris, slam",
+    "Ambush, grab, protect, pummel",
+    "Ambush, feed, grapple, poison",
+    "Grapple, intimidate, profit, steal",
+    "Plunder, raid, smash, terrorize",
+    "Cut down the living, steal skin, wreak havoc",
+    "Act first, aim for the weakest, intimidate",
+    "Make a living, overwhelm, slam, topple",
+    "Consume, gore, navigate, overpower, pursue",
+    "Find the blood, isolate prey, target the weak",
+    "Fuel anger, impress rivals, wreak havoc"
+  ],
+  leader:[
+    "Arrest, close gates, pin down, seek glory",
+    "Bully, command, profit, reinforce",
+    "Command, make 'em walk the plank, plunder, raid",
+    "Blast, command, endure",
+    "Command, nurture, prune the unwelcome",
+    "Command, make a living, maneuver, pin down, protect animals",
+    "Run down, seek glory, show dominance",
+    "Ambush, get out alive, kill, prepare for all scenarios",
+    "Amass great power, plot, take command",
+    "Move through solid objects, rally troops, rehash old battles",
+    "Condescend, declare premature victory, prove superiority",
+    "Command, cultivate, drive out, preserve the forest"
+  ],
+  ranged:[
+    "Arrest, close gates, make it through the day, pin down",
+    "Ambush, hide, profit, reposition",
+    "Perforate distracted targets, play dead, steal skin",
+    "Cackle, consume magic, serve creator",
+    "Move through solid objects, stay out of the fray, rehash old battles",
+    "Develop new spells, seek power, shatter formations",
+    "Join in on others' success, take what belongs to others, hold grudges"
+  ],
+  skulk:[
+    "Defend territory, harry, protect pack, surround, trail",
+    "Camouflage, consume and multiply, creep up, envelop",
+    "Ambush, conceal, divide, profit",
+    "Camouflage, consume and multiply, ignite, start fires",
+    "Anticipate, get paid, kill, taint food and water",
+    "Capture sacrifices, isolate prey, rise in the ranks",
+    "Hunt prey, stay mobile, strike decisively",
+    "Evade, hide, pilfer, profit",
+    "Consume, lure prey, subdue with song",
+    "Defend territory, isolate prey, stalk",
+    "Make fear contagious, stick to the shadows, undermine resolve",
+    "Dive-bomb, hide, protect leader"
+  ],
+  social:[
+    "Discredit, gain favor, maneuver, scheme",
+    "Buy low and sell high, create demand, inflate prices, seek profit",
+    "Abuse power, gather resources, mobilize minions",
+    "Entice, maneuver, secure patrons",
+    "Curry favor, manufacture evidence, scheme",
+    "Cut and run, disguise appearance, eavesdrop"
+  ],
+  solo:[
+    "Burrow, drag away, feed, reposition",
+    "Bite off heads, feast, rip limbs, stomp, throw enemies",
+    "Destroy environment, serve creator, smash target, trample groups",
+    "Confound, destabilize, transmogrify",
+    "Act erratically, corral targets, relish pain, torment",
+    "Encircle enemies, grow in size, intimidate, start fires",
+    "Absorb corpses, flail, hunger, terrify",
+    "Change tactics, trample foes, wait in disguise",
+    "Corner, hit-and-run, petrify, seek vengeance",
+    "Collect shiny things, hunt, nest, swoop"
+  ],
+  support:[
+    "Command, hex, profit",
+    "Curry favor, hinder foes, uncover knowledge",
+    "Consume, fuel greed, sow dissent"
+  ]
+};
+
+var NAME_A = ["Hollow","Gilded","Rotting","Pale","Iron","Weeping","Broken","Hungry","Silent","Mourning","Ashen","Crooked","Bitter","Glass","Drowned","Sunless","Split","Feral"];
+var NAME_B = ["Warden","Choir","Hound","Marshal","Thing","Herald","Brute","Sister","Watcher","Cur","Bailiff","Weaver","Knight","Swarm","Priest","Toll","Widow","Stag"];
+
+/* ============ state ============ */
+var S = {
+  role:"standard", tier:1,
+  name:"", motives:"",
+  atkName:"", range:"", dmg:"", dmgType:"phy",
+  stats:{diff:0,major:0,severe:0,hp:0,stress:0,atk:0},
+  dirty:{}, feats:[], pcs:4
+};
+
+var STAT_DEFS = [
+  {k:"diff",   label:"Difficulty"},
+  {k:"major",  label:"Major threshold"},
+  {k:"severe", label:"Severe threshold"},
+  {k:"hp",     label:"Hit Points"},
+  {k:"stress", label:"Stress"},
+  {k:"atk",    label:"Attack modifier"}
+];
+
+function el(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+/* Suggested value for a stat, benchmark plus role delta, clamped sensibly. */
+function suggest(key){
+  var t = TIERS[S.tier], role = ROLES[S.role], d = role.d[key];
+  if (d === "none") return null;
+  var base = t[key][2];
+  if (typeof d === "string" && d.charAt(0) === "=") return parseInt(d.slice(1),10);
+  var v = base + (typeof d === "number" ? d : 0);
+  if (key === "hp" || key === "stress") v = Math.max(1, v);
+  if (key === "diff") v = Math.max(5, v);
+  if (key === "major" || key === "severe") v = Math.max(1, v);
+  return v;
+}
+
+/* SRD range for a stat at the current tier, or null if the role removes it. */
+function range(key){
+  if (ROLES[S.role].d[key] === "none") return null;
+  var t = TIERS[S.tier][key];
+  return [t[0], t[1]];
+}
+
+function applySuggested(force){
+  STAT_DEFS.forEach(function(sd){
+    /* A role that removes a stat removes it, full stop. This is structural,
+       so it overrides anything the user typed into that field earlier. */
+    if (ROLES[S.role].d[sd.k] === "none"){ S.stats[sd.k] = null; return; }
+    /* Coming back from such a role, the stat has to be restored even if it was
+       marked as edited before it was removed. */
+    if (S.stats[sd.k] === null || S.stats[sd.k] === undefined){
+      S.stats[sd.k] = suggest(sd.k); return;
+    }
+    if (force || !S.dirty[sd.k]) S.stats[sd.k] = suggest(sd.k);
+  });
+  if (force || !S.dirty.dmg)     S.dmg     = TIERS[S.tier].dmg[1];
+  if (force || !S.dirty.atkName) S.atkName = ROLES[S.role].atkName;
+  if (force || !S.dirty.range)   S.range   = ROLES[S.role].range;
+  if (force || !S.dirty.dmgType) S.dmgType = ROLES[S.role].dtype || "phy";
+  if (force) S.dirty = {};
+}
+
+/* Features whose name carries a value in brackets keep their body text in step
+   with it. Edit "Minion (X)" to "Minion (2)" and the sentence below rewrites itself. */
+var PARAM_FEATS = {
+  minion: function(x){
+    return "This adversary is defeated the moment it takes any damage. When a PC deals "
+      + x + " or more damage to it, defeat one additional Minion within Very Close range for every "
+      + x + " damage dealt.";
+  },
+  horde: function(x){
+    return "When this adversary has marked half or more of its Hit Points, its standard attack deals "
+      + x + " damage instead.";
+  },
+  relentless: function(x){
+    var n = parseInt(x, 10);
+    var word = n === 1 ? "once" : n === 2 ? "twice" : (isNaN(n) ? x + " times" : n + " times");
+    return "This adversary can be spotlighted up to " + word
+      + " per GM turn. Spend Fear as usual to spotlight it.";
+  }
+};
+
+/* Pulls the bracketed value out of a feature name, e.g. "Minion (7)" -> "7". */
+function paramOf(name){
+  var m = String(name).match(/\(([^)]*)\)/);
+  return m ? m[1].trim() : null;
+}
+
+/* Rewrites a parameterised feature's body from its name, unless the body was hand-edited. */
+function syncParam(f){
+  if (!f || !PARAM_FEATS[f.id] || f.textEdited) return;
+  var x = paramOf(f.n);
+  if (x === null || x === "") return;
+  f.t = PARAM_FEATS[f.id](x);
+}
+
+/* Gives Minion and Horde a real starting value for the tier instead of a literal X. */
+function scaleParams(){
+  S.feats.forEach(function(f){
+    if (!PARAM_FEATS[f.id] || f.edited) return;
+    if (f.id === "minion") f.n = "Minion (" + TIERS[S.tier].major[2] + ")";
+    if (f.id === "horde")  f.n = "Horde (" + TIERS[S.tier].dmg[0] + ")";
+    syncParam(f);
+  });
+}
+
+/* PAR is an order, not just a label: passives first, then actions, then reactions.
+   Sorting the array itself (not just the view) keeps every index in the markup
+   pointing at the feature the reader is actually looking at. */
+var PAR_ORDER = {Passive:0, Action:1, Reaction:2};
+function sortFeats(list){
+  return list.sort(function(a,b){
+    return (PAR_ORDER[a.k] === undefined ? 9 : PAR_ORDER[a.k])
+         - (PAR_ORDER[b.k] === undefined ? 9 : PAR_ORDER[b.k]);
+  });
+}
+
+/* Features on the stat block are copies, so editing one never touches the library. */
+function cloneFeat(f){ return {id:f.id, n:f.n, k:f.k, c:f.c, t:f.t, src:f.src}; }
+
+function syncAutoFeats(prevRole){
+  if (prevRole){
+    ROLES[prevRole].auto.forEach(function(id){
+      if (ROLES[S.role].auto.indexOf(id) === -1){
+        S.feats = S.feats.filter(function(f){ return f.id !== id; });
+      }
+    });
+  }
+  ROLES[S.role].auto.forEach(function(id){
+    if (!S.feats.some(function(f){ return f.id === id; })){
+      var f = FEATS.filter(function(x){ return x.id === id; })[0];
+      if (f) S.feats.unshift(cloneFeat(f));
+    }
+  });
+  scaleRelentless();
+  scaleParams();
+  sortFeats(S.feats);
+}
+
+/* Relentless scales with tier: 2 spotlights at Tiers 1 and 2, 3 from Tier 3 up.
+   A feature the user has typed over is left alone. */
+function scaleRelentless(){
+  var rf = S.feats.filter(function(f){ return f.id === "relentless"; })[0];
+  if (!rf || rf.edited) return;
+  var n = S.tier <= 2 ? 2 : 3;
+  rf.n = "Relentless ("+n+")";
+  syncParam(rf);
+}
+
+/* ============ render ============ */
+function renderTypes(){
+  el("typegrid").innerHTML = Object.keys(ROLES).map(function(k){
+    var r = ROLES[k];
+    return '<button type="button" class="typecard" data-role="'+k+'" aria-pressed="'+(S.role===k)+'">'
+      + '<div class="tc-top"><span class="tc-name">'+esc(r.name)+'</span><span class="bp">'+r.bp+' BP</span></div>'
+      + '<div class="tc-desc">'+esc(r.desc)+'</div></button>';
+  }).join("");
+}
+
+function renderTiers(){
+  el("tiers").innerHTML = [1,2,3,4].map(function(n){
+    return '<button type="button" class="tierbtn" data-tier="'+n+'" aria-pressed="'+(S.tier===n)+'">'
+      + '<div class="tier-n">'+n+'</div><div class="tier-lv">'+esc(TIERS[n].levels)+'</div></button>';
+  }).join("");
+}
+
+function renderStats(){
+  el("statfields").innerHTML = STAT_DEFS.map(function(sd){
+    var v = S.stats[sd.k], rg = range(sd.k);
+    if (rg === null){
+      return '<div class="field"><label>'+esc(sd.label)+'</label>'
+        + '<div class="stepper" style="opacity:.5;pointer-events:none;">'
+        + '<button type="button">&minus;</button><input value="—" readonly><button type="button">+</button></div>'
+        + '<span class="hint na">Not used by a '+esc(ROLES[S.role].name)+'</span></div>';
+    }
+    var off = (v < rg[0] || v > rg[1]);
+    /* A role that deliberately leaves the tier range explains itself instead of nagging,
+       but only while the value is still the one this tool suggested. */
+    var brk = (ROLES[S.role].breaks || {})[sd.k];
+    var intended = brk && v === suggest(sd.k);
+    if (intended) off = false;
+    var sign = (sd.k === "atk" && v >= 0) ? "+" : "";
+    var hint = intended ? brk
+      : (off ? "Outside Tier "+S.tier+": "+rg[0]+" to "+rg[1]
+             : "Tier "+S.tier+" range "+rg[0]+" to "+rg[1]);
+    return '<div class="field"><label for="st_'+sd.k+'">'+esc(sd.label)+'</label>'
+      + '<div class="stepper'+(off?" off":"")+'">'
+      + '<button type="button" data-stat="'+sd.k+'" data-by="-1">&minus;</button>'
+      + '<input id="st_'+sd.k+'" data-statin="'+sd.k+'" value="'+sign+v+'" inputmode="numeric">'
+      + '<button type="button" data-stat="'+sd.k+'" data-by="1">+</button></div>'
+      + '<span class="hint'+(off?" off":"")+(intended?" na":"")+'">'+esc(hint)+'</span></div>';
+  }).join("");
+
+  el("rangePick").innerHTML = RANGES.map(function(r){
+    return '<button type="button" data-rng="'+r+'" aria-pressed="'+(S.range===r)+'">'+r+'</button>';
+  }).join("");
+  el("dtypePick").innerHTML = DTYPES.map(function(d){
+    return '<button type="button" data-dtype="'+d.k+'" aria-pressed="'+(S.dmgType===d.k)+'">'+d.label+'</button>';
+  }).join("");
+
+  el("dmgchips").innerHTML = TIERS[S.tier].dmg.map(function(d,i){
+    return '<button type="button" class="chip" data-dmg="'+esc(d)+'">'+["Low","Benchmark","High"][i]+" "+esc(d)+'</button>';
+  }).join("");
+}
+
+function renderBand(){
+  var maj = S.stats.major, sev = S.stats.severe, w = el("bandWrap");
+  if (maj === null || sev === null){
+    w.innerHTML = '<div class="band-empty">A '+esc(ROLES[S.role].name)+' has no damage thresholds. Any damage takes it out.</div>';
+    return;
+  }
+  var top = Math.max(sev + Math.round(sev*0.45), sev+4);
+  var a = Math.max(maj,1), b = Math.max(sev-maj,1), c = Math.max(top-sev,1);
+  w.innerHTML = '<div class="band-label"><h3 class="display">Damage thresholds</h3>'
+    + '<span>what a hit actually costs it</span></div>'
+    + '<div class="band">'
+    + '<div class="zone z1" style="flex-grow:'+a+'"><b>under '+maj+'</b><span>1 HP</span></div>'
+    + '<div class="zone z2" style="flex-grow:'+b+'"><b>'+maj+' to '+(sev-1)+'</b><span>2 HP</span></div>'
+    + '<div class="zone z3" style="flex-grow:'+c+'"><b>'+sev+' and up</b><span>3 HP</span></div>'
+    + '</div><div class="band-scale"><span>0</span><span>'+top+'+</span></div>';
+}
+
+function renderAbilities(){
+  var mine = sortFeats(FEATS.filter(function(f){ return f.r.indexOf(S.role) !== -1; }));
+  var uni  = sortFeats(FEATS.filter(function(f){ return f.r.indexOf("*") !== -1; }));
+  var srd  = sortFeats(SRD_FEATS.filter(function(f){ return f.r.indexOf(S.role) !== -1; }));
+  el("abfilter").innerHTML = '<span class="chip" style="pointer-events:none;">'
+    + (CUSTOM.length + srd.length + mine.length + uni.length) + ' available for a '+esc(ROLES[S.role].name)+'</span>'
+    + '<span class="chip" style="pointer-events:none;">'+srd.length+' of them from the SRD</span>';
+
+  function row(f, isCustom){
+    var added = S.feats.some(function(x){ return x.id === f.id; });
+    var tags = '<span class="tag tag-'+f.k.toLowerCase()+'">'+f.k+'</span>';
+    if (f.c) tags += '<span class="tag tag-cost">'+esc(f.c)+'</span>';
+    var btn = '<button type="button" class="ab" data-feat="'+f.id+'" data-added="'+(added?1:0)+'"'+(added?' disabled':'')+'>'
+      + '<div class="ab-body"><div class="ab-name">'+esc(f.n)+(added?" ✓":"")+'</div>'
+      + '<div class="ab-text">'+esc(f.t)+'</div>'
+      + (f.src ? '<div class="ab-src">from the '+esc(f.src)+'</div>' : '')
+      + '</div>'
+      + '<div class="ab-meta">'+tags+'</div></button>';
+    if (!isCustom) return btn;
+    return '<div class="ab-row">'+btn
+      + '<button class="ab-del" type="button" data-delfeat="'+f.id+'" aria-label="Delete '+esc(f.n)+' from your library">&times;</button></div>';
+  }
+
+  var html = "";
+  if (CUSTOM.length){
+    html += '<div class="ab-group">Yours &middot; '+CUSTOM.length+'</div>'
+          + sortFeats(CUSTOM.slice()).map(function(f){ return row(f,true); }).join("");
+  }
+  if (srd.length){
+    html += '<div class="ab-group">Straight from the SRD &middot; '+srd.length
+          + '<span class="ab-group-note">what the book\'s own '+esc(ROLES[S.role].name)+' adversaries do</span></div>'
+          + srd.map(function(f){ return row(f); }).join("");
+  }
+  html += '<div class="ab-group">Generic '+esc(ROLES[S.role].name)+' &middot; '+mine.length+'</div>' + mine.map(function(f){ return row(f); }).join("");
+  html += '<div class="ab-group">Any role &middot; '+uni.length+'</div>' + uni.map(function(f){ return row(f); }).join("");
+  el("ablist").innerHTML = html;
+}
+
+/* ============ custom features ============ */
+var CUSTOM = [];
+var cf = {k:"Passive", c:""};
+
+function loadCustom(){
+  try { CUSTOM = JSON.parse(localStorage.getItem("af.customFeats") || "[]"); }
+  catch(e){ CUSTOM = []; }
+}
+function saveCustom(){
+  try { localStorage.setItem("af.customFeats", JSON.stringify(CUSTOM)); } catch(e){}
+}
+function findFeat(id){
+  return FEATS.concat(SRD_FEATS).concat(CUSTOM).filter(function(x){ return x.id === id; })[0];
+}
+
+function renderPickers(){
+  el("cfKind").innerHTML = KINDS.map(function(k){
+    return '<button type="button" data-cfk="'+k+'" aria-pressed="'+(cf.k===k)+'">'+k+'</button>';
+  }).join("");
+  el("cfCost").innerHTML = COSTS.map(function(c){
+    return '<button type="button" data-cfc="'+c+'" aria-pressed="'+(cf.c===c)+'">'+(c||"Free")+'</button>';
+  }).join("");
+}
+
+function readMaker(){
+  var n = el("cfName").value.trim() || "New feature";
+  var t = el("cfText").value.trim() || "Describe what it does.";
+  return {id:"c"+Date.now()+Math.floor(Math.random()*999), n:n, k:cf.k, c:cf.c, t:t, r:["*"], mine:true};
+}
+function clearMaker(){
+  el("cfName").value = ""; el("cfText").value = "";
+  cf = {k:"Passive", c:""}; renderPickers();
+}
+/* Walks the role's list, never handing back the line already on screen. */
+function nextMotive(){
+  var list = MOTIVES[S.role] || MOTIVES.standard;
+  if (list.length === 1) return list[0];
+  var pick = S.motives;
+  for (var guard = 0; guard < 12 && pick === S.motives; guard++){
+    pick = list[Math.floor(Math.random()*list.length)];
+  }
+  return pick;
+}
+
+/* First click arms, second click within five seconds does it. No modal,
+   but nothing is deleted on a single stray click either. */
+var armed = null, armedTimer = null;
+function armDelete(btn, question){
+  if (armed === btn){
+    clearTimeout(armedTimer); armed = null; return true;
+  }
+  disarm();
+  armed = btn;
+  btn.dataset.was = btn.innerHTML;
+  btn.classList.add("armed");
+  btn.innerHTML = "Sure?";
+  btn.setAttribute("title", question);
+  armedTimer = setTimeout(disarm, 5000);
+  return false;
+}
+function disarm(){
+  clearTimeout(armedTimer);
+  if (armed && armed.isConnected){
+    armed.innerHTML = armed.dataset.was || "&times;";
+    armed.classList.remove("armed");
+    armed.removeAttribute("title");
+  }
+  armed = null;
+}
+
+function flash(btn, word){
+  var old = btn.textContent; btn.textContent = word;
+  setTimeout(function(){ btn.textContent = old; }, 1200);
+}
+
+/* editable(path, value, placeholder, extraClass) -> a contenteditable span */
+function ed(path, val, ph, cls){
+  var blank = (val === "" || val === null || val === undefined);
+  return '<span class="'+(cls||"")+(blank?" blank":"")+'" contenteditable="true" spellcheck="false"'
+    + ' data-edit="'+path+'" data-placeholder="'+esc(ph||"")+'" role="textbox" tabindex="0">'
+    + (blank ? "" : esc(val)) + '</span>';
+}
+
+function renderBlock(){
+  if (S.editing) return; /* never redraw a field mid-type */
+  sortFeats(S.feats);
+
+  el("outName").innerHTML = ed("name", S.name, "Nameless thing");
+  el("outClass").innerHTML = "Tier "+S.tier+" "+ROLES[S.role].name;
+  el("outMotives").innerHTML = "Motives &amp; Tactics: "
+    + ed("motives", S.motives, "add some verbs");
+
+  var parts = [];
+  function stat(lbl, inner){
+    parts.push('<div class="stat"><span class="stat-label">'+lbl+'</span>'
+      + '<b class="stat-val">'+inner+'</b></div>');
+  }
+  stat("Difficulty", ed("stat.diff", S.stats.diff, "0"));
+  if (S.stats.major !== null){
+    stat("Thresholds", ed("stat.major", S.stats.major, "0")
+      + '<span class="stat-sep">/</span>'
+      + ed("stat.severe", S.stats.severe, "0"));
+  }
+  stat("HP",     ed("stat.hp", S.stats.hp, "0"));
+  stat("Stress", ed("stat.stress", S.stats.stress, "0"));
+  stat("ATK",    ed("stat.atk", (S.stats.atk>=0?"+":"")+S.stats.atk, "0"));
+  el("outStats").innerHTML = parts.join("");
+
+  var dtLabel = (DTYPES.filter(function(d){ return d.k === S.dmgType; })[0] || DTYPES[0]).label;
+  el("outAtk").innerHTML = '<strong>'+ed("atkName", S.atkName, "Attack")+':</strong> '
+    + '<span class="pickable" data-cycrange="1" title="Click to change range">'+esc(S.range || "Close")+'</span>'
+    + ' &middot; ' + ed("dmg", S.dmg, "damage") + ' '
+    + '<span class="pickable" data-cycdtype="1" title="Click to swap physical and magic">'+esc(dtLabel)+'</span>';
+
+  el("outFeats").innerHTML = S.feats.length
+    ? S.feats.map(function(f,i){
+        return '<div class="feat"><div class="feat-head">'
+          + ed("feat."+i+".n", f.n, "Feature name", "feat-name")
+          + '<span class="tag tag-'+f.k.toLowerCase()+'" data-cycle="'+i+'" title="Passive, Action or Reaction" style="cursor:pointer">'+f.k+'</span>'
+          + '<span class="tag '+(f.c?"tag-cost":"tag-passive")+'" data-cost="'+i+'" title="What it costs to use" style="cursor:pointer">'+esc(f.c||"Free")+'</span>'
+          + '</div><div class="feat-text">'+ed("feat."+i+".t", f.t, "What it does")+'</div>'
+          + '<button class="feat-x" type="button" data-rm="'+i+'" aria-label="Remove '+esc(f.n)+'">&times;</button></div>';
+      }).join("")
+    : '<div class="no-feats">No features yet. Pick some from the list.</div>';
+
+  el("thisCost").textContent = ROLES[S.role].bp;
+  renderBudget();
+}
+
+function renderBudget(){
+  var budget = 3*S.pcs + 2, cost = ROLES[S.role].bp;
+  var n = Math.floor(budget/cost);
+  el("budgetOut").innerHTML = 'Budget for '+S.pcs+' players: <b>'+budget+'</b> BP.<br>'
+    + 'That is up to <b>'+n+'</b> of this one, or mix it in and spend the rest elsewhere.';
+}
+
+/* "3 minutes ago" beats a timestamp when you are scanning for the one you just made. */
+function ago(ms){
+  if (!ms) return "";
+  var d = Date.now() - ms;
+  if (d < 45000) return "just now";
+  var mins = Math.round(d/60000);
+  if (mins < 60) return mins+" min ago";
+  var hrs = Math.round(mins/60);
+  if (hrs < 24) return hrs+(hrs===1?" hour ago":" hours ago");
+  var days = Math.round(hrs/24);
+  return days === 1 ? "yesterday" : days+" days ago";
+}
+
+function renderRoster(){
+  var list = load();
+  el("roster").innerHTML = list.length
+    ? list.map(function(r,i){
+        var fresh = S.lastSaved && r.at === S.lastSaved;
+        return '<div class="rcard'+(fresh?" rcard-new":"")+'">'
+          + (fresh ? '<span class="rflag">Just saved</span>'
+                   : (i === 0 ? '<span class="rflag rflag-quiet">Newest</span>' : ''))
+          + '<button class="rload" type="button" data-load="'+i+'">'+esc(r.name||"Nameless thing")+'</button>'
+          + '<span class="rmeta">T'+r.tier+' '+esc(ROLES[r.role]?ROLES[r.role].name:r.role)+'</span>'
+          + (r.at ? '<span class="rtime">'+esc(ago(r.at))+'</span>' : '')
+          + '<button class="rdel" type="button" data-del="'+i+'" data-confirm="0" aria-label="Delete '+esc(r.name||"this one")+'">&times;</button>'
+          + '</div>';
+      }).join("")
+    : '<span class="empty">Nothing saved yet.</span>';
+}
+
+function renderAll(){
+  renderTypes(); renderTiers(); renderStats(); renderBand(); renderAbilities(); renderBlock();
+  el("nameIn").value = S.name;
+  el("motiveIn").value = S.motives;
+  el("atkNameIn").value = S.atkName;
+  el("dmgIn").value = S.dmg;
+}
+
+/* ============ storage ============ */
+function load(){
+  try { return JSON.parse(localStorage.getItem("af.roster") || "[]"); }
+  catch(e){ return []; }
+}
+function save(list){
+  try { localStorage.setItem("af.roster", JSON.stringify(list)); } catch(e){}
+}
+
+/* ============ export ============ */
+function toText(){
+  var L = [];
+  L.push("**"+(S.name||"Nameless thing")+"**");
+  L.push("Tier "+S.tier+" "+ROLES[S.role].name);
+  if (S.motives) L.push("*Motives & Tactics:* "+S.motives);
+  L.push("");
+  var line = "**Difficulty:** "+S.stats.diff;
+  if (S.stats.major !== null) line += " | **Thresholds:** "+S.stats.major+"/"+S.stats.severe;
+  line += " | **HP:** "+S.stats.hp+" | **Stress:** "+S.stats.stress;
+  L.push(line);
+  L.push("**ATK:** "+(S.stats.atk>=0?"+":"")+S.stats.atk
+    + " | **"+(S.atkName||"Attack")+":** "+(S.range||"Close")+" | "+(S.dmg||"—")+" "+S.dmgType);
+  if (S.feats.length){
+    sortFeats(S.feats);
+    L.push("");
+    S.feats.forEach(function(f){
+      L.push("**"+f.n+" - "+f.k+(f.c?" ("+f.c+")":"")+":** "+f.t);
+    });
+  }
+  L.push("");
+  L.push("Battle Points: "+ROLES[S.role].bp);
+  return L.join("\n");
+}
+
+
+/* ============ PNG export ============
+   The card is redrawn on a canvas rather than screenshotted, so it comes out at
+   whatever pixel density we ask for and picks up the theme currently on screen. */
+var PNG_W = 760, PNG_PAD = 30, PNG_R = 18, PNG_SCALE = 2;
+
+function tok(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+function serif(size, weight){ return (weight||400)+" "+size+'px "Fraunces", Georgia, serif'; }
+function sans(size, weight){ return (weight||400)+" "+size+'px "Nunito Sans", system-ui, sans-serif'; }
+
+/* Splits text into lines that fit maxW under the font already set on ctx. */
+function wrap(ctx, text, maxW){
+  var words = String(text).split(/\s+/), lines = [], line = "";
+  for (var i=0;i<words.length;i++){
+    var probe = line ? line+" "+words[i] : words[i];
+    if (ctx.measureText(probe).width > maxW && line){ lines.push(line); line = words[i]; }
+    else line = probe;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+function pill(ctx,x,y,label,bg,fg,border){
+  ctx.font = sans(11,900);
+  try{ ctx.letterSpacing = "0.6px"; }catch(e){}
+  var w = ctx.measureText(label).width + 18, h = 22;
+  ctx.fillStyle = bg; roundRect(ctx,x,y,w,h,11); ctx.fill();
+  if (border){ ctx.strokeStyle = border; ctx.lineWidth = 1.5; ctx.stroke(); }
+  ctx.fillStyle = fg; ctx.textBaseline = "middle";
+  ctx.fillText(label, x+9, y+h/2+0.5);
+  ctx.textBaseline = "alphabetic";
+  try{ ctx.letterSpacing = "0px"; }catch(e){}
+  return w;
+}
+
+/* Runs the whole layout twice: once to find the height, once to actually paint. */
+function paintCard(ctx, draw){
+  var C = {
+    card:tok("--card"), card2:tok("--card-2"), ink:tok("--ink"), inkSoft:tok("--ink-soft"),
+    gold:tok("--gold"), plum:tok("--plum"), line:tok("--line"), lineStrong:tok("--line-strong"),
+    goldBg:tok("--gold-bg"), onAccent:tok("--on-accent"), warn:tok("--warn"), warnBg:tok("--warn-bg")
+  };
+  var P = PNG_PAD;              /* one padding value, used on every side */
+  var CW = PNG_W - P*2;         /* usable content width */
+  var y = 0;
+
+  /* ---- head ---- */
+  y += P + 26;
+  ctx.font = serif(34,800);
+  var nameLines = wrap(ctx, S.name || "Nameless thing", CW);
+  if (draw){ ctx.fillStyle = C.ink; nameLines.forEach(function(l,i){ ctx.fillText(l, P, y + i*38); }); }
+  y += (nameLines.length-1)*38;
+
+  y += 24;
+  if (draw){
+    ctx.font = sans(12.5,900); ctx.fillStyle = C.gold;
+    try{ ctx.letterSpacing = "1.4px"; }catch(e){}
+    ctx.fillText(("Tier "+S.tier+" "+ROLES[S.role].name).toUpperCase(), P, y);
+    try{ ctx.letterSpacing = "0px"; }catch(e){}
+  }
+
+  if (S.motives){
+    y += 26;
+    ctx.font = "italic "+sans(15);
+    var mLines = wrap(ctx, "Motives & Tactics: "+S.motives, CW);
+    if (draw){ ctx.fillStyle = C.inkSoft; mLines.forEach(function(l,i){ ctx.fillText(l, P, y + i*21); }); }
+    y += (mLines.length-1)*21;
+  }
+  y += P;
+  var headBottom = y;
+
+  /* ---- stat row ---- */
+  y += 30;
+  var cells = [["Difficulty", String(S.stats.diff)]];
+  if (S.stats.major !== null) cells.push(["Thresholds", S.stats.major+" / "+S.stats.severe]);
+  cells.push(["HP", String(S.stats.hp)], ["Stress", String(S.stats.stress)],
+             ["ATK", (S.stats.atk>=0?"+":"")+S.stats.atk]);
+  if (draw){
+    var cx = P;
+    cells.forEach(function(c){
+      ctx.font = sans(11,900); ctx.fillStyle = C.inkSoft;
+      try{ ctx.letterSpacing = "1px"; }catch(e){}
+      ctx.fillText(c[0].toUpperCase(), cx, y);
+      try{ ctx.letterSpacing = "0px"; }catch(e){}
+      var lw = ctx.measureText(c[0].toUpperCase()).width;
+      ctx.font = serif(28,800); ctx.fillStyle = C.ink;
+      ctx.fillText(c[1], cx, y+33);
+      cx += Math.max(lw, ctx.measureText(c[1]).width) + 32;
+    });
+  }
+  y += 33 + 22;
+  if (draw){
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(P,y); ctx.lineTo(PNG_W-P,y); ctx.stroke();
+  }
+
+  /* ---- attack ---- */
+  y += 30;
+  var dt = (DTYPES.filter(function(d){ return d.k === S.dmgType; })[0] || DTYPES[0]).label;
+  if (draw){
+    ctx.fillStyle = C.ink;
+    ctx.font = sans(16,900);
+    var lead = (S.atkName||"Attack")+":";
+    ctx.fillText(lead, P, y);
+    var lw2 = ctx.measureText(lead).width;
+    ctx.font = sans(16); ctx.fillStyle = C.ink;
+    ctx.fillText(" "+(S.range||"Close")+" · "+(S.dmg||"—")+" "+dt, P+lw2, y);
+  }
+
+  /* ---- features ---- */
+  sortFeats(S.feats);
+  S.feats.forEach(function(f, i){
+    y += 26;
+    if (draw){
+      ctx.strokeStyle = C.line; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(P,y-8); ctx.lineTo(PNG_W-P,y-8); ctx.stroke();
+    }
+    y += 22;
+    ctx.font = serif(19,600);
+    if (draw){
+      ctx.fillStyle = C.ink;
+      ctx.fillText(f.n, P, y);
+      var px = P + ctx.measureText(f.n).width + 11, py = y-15;
+      var kbg = f.k === "Action" ? C.plum : f.k === "Reaction" ? C.warnBg : C.card2;
+      var kfg = f.k === "Action" ? C.onAccent : f.k === "Reaction" ? C.warn : C.inkSoft;
+      var kbd = f.k === "Action" ? null : f.k === "Reaction" ? C.warn : C.lineStrong;
+      px += pill(ctx, px, py, f.k.toUpperCase(), kbg, kfg, kbd) + 6;
+      if (f.c) pill(ctx, px, py, f.c.toUpperCase(), C.goldBg, C.gold, C.gold);
+    }
+    y += 23;
+    ctx.font = sans(14.5);
+    var tLines = wrap(ctx, f.t, CW);
+    if (draw){ ctx.fillStyle = C.inkSoft; tLines.forEach(function(l,j){ ctx.fillText(l, P, y + j*21); }); }
+    y += (tLines.length-1)*21;
+  });
+
+  if (!S.feats.length){
+    y += 28;
+    if (draw){ ctx.font = "italic "+sans(14.5); ctx.fillStyle = C.inkSoft; ctx.fillText("No features.", P, y); }
+  }
+
+  /* ---- credit ---- */
+  y += 30;
+  if (draw){
+    ctx.font = sans(11); ctx.fillStyle = C.inkSoft;
+    ctx.fillText("Compatible with Daggerheart · Made with Adversary Forge", P, y);
+  }
+  y += P - 4;
+
+  return {height:y, headBottom:headBottom};
+}
+
+function renderPNG(){
+  var probe = document.createElement("canvas").getContext("2d");
+  var m = paintCard(probe, false);
+  var H = Math.ceil(m.height);
+
+  var cv = document.createElement("canvas");
+  cv.width = PNG_W * PNG_SCALE;
+  cv.height = H * PNG_SCALE;
+  var ctx = cv.getContext("2d");
+  ctx.scale(PNG_SCALE, PNG_SCALE);
+
+  /* Nothing outside the card: the corners stay transparent. */
+  ctx.clearRect(0, 0, PNG_W, H);
+
+  var inset = 1;
+  ctx.save();
+  roundRect(ctx, inset, inset, PNG_W-inset*2, H-inset*2, PNG_R);
+  ctx.clip();
+
+  ctx.fillStyle = tok("--card");
+  ctx.fillRect(0, 0, PNG_W, H);
+  ctx.fillStyle = tok("--card-2");
+  ctx.fillRect(0, 0, PNG_W, m.headBottom);
+  ctx.strokeStyle = tok("--ink"); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, m.headBottom); ctx.lineTo(PNG_W, m.headBottom); ctx.stroke();
+
+  paintCard(ctx, true);
+  ctx.restore();
+
+  ctx.strokeStyle = tok("--ink"); ctx.lineWidth = 2;
+  roundRect(ctx, inset, inset, PNG_W-inset*2, H-inset*2, PNG_R);
+  ctx.stroke();
+  return cv;
+}
+
+function slug(){
+  return (S.name || "adversary").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "adversary";
+}
+
+/* Two save paths. On claude.ai the viewer grants downloads through the
+   capability and confirms the file; anywhere else it is a plain blob link. */
+function savePNG(btn){
+  var cv = window.__pngCanvas;
+  if (!cv) return;
+  cv.toBlob(function(blob){
+    var viaCapability = null;
+    try {
+      if (window.claude && typeof window.claude.use === "function"){
+        viaCapability = window.claude.use("downloads");
+      }
+    } catch(e){}
+
+    function plain(){
+      var u = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = u; a.download = slug()+".png";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(u); }, 8000);
+      flash(btn, "Saved");
+    }
+
+    if (!viaCapability){ plain(); return; }
+
+    viaCapability.then(function(dl){
+      if (!dl){ plain(); return; }
+      dl.save({filename: slug()+".png", data: blob}).then(
+        function(){ flash(btn, "Saved"); },
+        function(err){
+          var code = err && err.code;
+          flash(btn, code === "declined" ? "Cancelled"
+                   : code === "rate_limited" ? "Try again"
+                   : code === "too_large" ? "Too big" : "Could not save");
+        }
+      );
+    }, plain);
+  }, "image/png");
+}
+
+function openPNG(){
+  var go = function(){
+    var cv = renderPNG();
+    window.__pngCanvas = cv;
+    el("pngImg").src = cv.toDataURL("image/png");
+    el("pngSheet").hidden = false;
+    el("pngClose").focus();
+  };
+  /* Fraunces has to be resident or the canvas silently falls back to Georgia. */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(go, go);
+  else go();
+}
+
+/* ============ events ============ */
+document.addEventListener("click", function(e){
+  var t = e.target.closest("button");
+  if (armed && t !== armed) disarm();
+  if (!t) return;
+
+  if (t.dataset.role){
+    var prev = S.role;
+    S.role = t.dataset.role;
+    applySuggested(false);
+    syncAutoFeats(prev);
+    renderAll(); return;
+  }
+  if (t.dataset.tier){
+    S.tier = parseInt(t.dataset.tier,10);
+    applySuggested(false);
+    scaleRelentless();
+    scaleParams();
+    renderAll(); return;
+  }
+  if (t.dataset.stat){
+    var k = t.dataset.stat;
+    if (S.stats[k] === null) return;
+    S.stats[k] += parseInt(t.dataset.by,10);
+    if (k !== "atk") S.stats[k] = Math.max(0, S.stats[k]);
+    S.dirty[k] = true;
+    renderStats(); renderBand(); renderBlock(); return;
+  }
+  if (t.dataset.dmg){ S.dmg = t.dataset.dmg; S.dirty.dmg = true; el("dmgIn").value = S.dmg; renderBlock(); return; }
+  if (t.dataset.pc){
+    S.pcs = Math.max(1, Math.min(12, S.pcs + parseInt(t.dataset.pc,10)));
+    el("pcIn").value = S.pcs; renderBudget(); return;
+  }
+  if (t.dataset.feat){
+    var f = findFeat(t.dataset.feat);
+    if (f && !S.feats.some(function(x){ return x.id === f.id; })) S.feats.push(cloneFeat(f));
+    renderAbilities(); renderBlock(); return;
+  }
+  if (t.dataset.delfeat){
+    if (!armDelete(t, "Delete this saved feature?")) return;
+    CUSTOM = CUSTOM.filter(function(x){ return x.id !== t.dataset.delfeat; });
+    saveCustom(); renderAbilities(); return;
+  }
+  if (t.dataset.rng){ S.range = t.dataset.rng; S.dirty.range = true; renderStats(); renderBlock(); return; }
+  if (t.dataset.dtype){ S.dmgType = t.dataset.dtype; S.dirty.dmgType = true; renderStats(); renderBlock(); return; }
+  if (t.dataset.cfk){ cf.k = t.dataset.cfk; renderPickers(); return; }
+  if (t.dataset.cfc !== undefined){ cf.c = t.dataset.cfc; renderPickers(); return; }
+  if (t.dataset.rm !== undefined){
+    S.feats.splice(parseInt(t.dataset.rm,10),1);
+    renderAbilities(); renderBlock(); return;
+  }
+  if (t.dataset.load !== undefined){
+    var r = load()[parseInt(t.dataset.load,10)];
+    if (r){ S = Object.assign(S, r); S.dirty = {diff:1,major:1,severe:1,hp:1,stress:1,atk:1,dmg:1,atkName:1,range:1,dmgType:1}; renderAll(); }
+    return;
+  }
+  if (t.dataset.del !== undefined){
+    if (!armDelete(t, "Delete for good?")) return;
+    var l = load(); l.splice(parseInt(t.dataset.del,10),1); save(l); renderRoster(); return;
+  }
+
+  switch(t.id){
+    case "resetBtn": applySuggested(true); renderAll(); break;
+    case "rollName":
+      S.name = NAME_A[Math.floor(Math.random()*NAME_A.length)]+" "+NAME_B[Math.floor(Math.random()*NAME_B.length)];
+      el("nameIn").value = S.name; renderBlock(); break;
+    case "makerToggle":
+      var body = el("makerBody");
+      body.hidden = !body.hidden;
+      t.textContent = body.hidden ? "Open" : "Close";
+      break;
+    case "cfAdd":
+      var nf = readMaker();
+      S.feats.push(cloneFeat(nf));
+      clearMaker(); renderBlock(); flash(t, "Added");
+      break;
+    case "cfSave":
+      var sf = readMaker();
+      CUSTOM.unshift(sf);
+      saveCustom(); clearMaker(); renderAbilities(); flash(t, "Saved");
+      break;
+    case "rollMotive":
+      S.motives = nextMotive(); el("motiveIn").value = S.motives; renderBlock(); break;
+    case "saveBtn":
+      var list = load();
+      var stamp = Date.now();
+      S.lastSaved = stamp;
+      list.unshift({name:S.name, role:S.role, tier:S.tier, motives:S.motives, atkName:S.atkName,
+                    range:S.range, dmg:S.dmg, dmgType:S.dmgType, at:stamp,
+                    stats:Object.assign({},S.stats), feats:S.feats.slice()});
+      save(list.slice(0,30)); renderRoster();
+      flash(t, "Kept");
+      break;
+    case "copyBtn":
+      var txt = toText();
+      var done = function(){ t.textContent = "Copied"; setTimeout(function(){ t.textContent = "Copy stat block"; }, 1400); };
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(done, function(){ fallbackCopy(txt); done(); });
+      } else { fallbackCopy(txt); done(); }
+      break;
+    case "pngBtn": openPNG(); break;
+    case "pngClose": el("pngSheet").hidden = true; el("pngBtn").focus(); break;
+    case "pngDownload": savePNG(t); break;
+    case "pngCopy":
+      var cvc = window.__pngCanvas;
+      if (!cvc) break;
+      if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){
+        cvc.toBlob(function(blob){
+          navigator.clipboard.write([new ClipboardItem({"image/png": blob})])
+            .then(function(){ flash(t, "Copied"); }, function(){ flash(t, "Blocked"); });
+        }, "image/png");
+      } else { flash(t, "Not supported"); }
+      break;
+    case "themeBtn":
+      var cur = document.documentElement.getAttribute("data-theme");
+      var next = cur === "dark" ? "light" : cur === "light" ? "dark"
+        : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", next);
+      try{ localStorage.setItem("af.theme", next); }catch(err){}
+      break;
+  }
+});
+
+function fallbackCopy(txt){
+  var ta = document.createElement("textarea");
+  ta.value = txt; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); }catch(e){}
+  document.body.removeChild(ta);
+}
+
+document.addEventListener("input", function(e){
+  var n = e.target;
+  if (n.dataset.statin){
+    var k = n.dataset.statin;
+    var v = parseInt(String(n.value).replace(/[^0-9-]/g,""),10);
+    if (!isNaN(v)){ S.stats[k] = v; S.dirty[k] = true; renderBand(); renderBlock(); }
+    return;
+  }
+  switch(n.id){
+    case "nameIn":    S.name = n.value; renderBlock(); break;
+    case "motiveIn":  S.motives = n.value; renderBlock(); break;
+    case "atkNameIn": S.atkName = n.value; S.dirty.atkName = true; renderBlock(); break;
+    case "dmgIn":     S.dmg = n.value; S.dirty.dmg = true; renderBlock(); break;
+    case "pcIn":
+      var p = parseInt(String(n.value).replace(/[^0-9]/g,""),10);
+      if (!isNaN(p)) { S.pcs = Math.max(1,Math.min(12,p)); renderBudget(); }
+      break;
+  }
+});
+
+/* blur tidies the stat inputs back into canonical form */
+document.addEventListener("blur", function(e){
+  if (e.target.dataset && e.target.dataset.statin) renderStats();
+}, true);
+
+/* ============ click-to-edit on the stat block ============ */
+var KINDS = ["Passive","Action","Reaction"];
+
+document.addEventListener("focusin", function(e){
+  if (e.target.dataset && e.target.dataset.edit) S.editing = true;
+});
+
+document.addEventListener("focusout", function(e){
+  var n = e.target;
+  if (!n.dataset || !n.dataset.edit) return;
+  commit(n.dataset.edit, n.textContent.trim());
+  /* Moving straight to another editable field must not rebuild the DOM under it. */
+  var next = e.relatedTarget;
+  if (next && next.dataset && next.dataset.edit){ renderStats(); renderBand(); return; }
+  S.editing = false;
+  renderStats(); renderBand(); renderBlock();
+  el("nameIn").value = S.name;
+  el("motiveIn").value = S.motives;
+  el("atkNameIn").value = S.atkName;
+  el("dmgIn").value = S.dmg;
+});
+
+document.addEventListener("keydown", function(e){
+  if (e.key === "Escape" && !el("pngSheet").hidden){
+    el("pngSheet").hidden = true; el("pngBtn").focus(); return;
+  }
+  var n = e.target;
+  if (!n.dataset || !n.dataset.edit) return;
+  if (e.key === "Enter"){ e.preventDefault(); n.blur(); }
+  if (e.key === "Escape"){ e.preventDefault(); S.editing = false; renderBlock(); }
+});
+
+/* Paste as plain text so formatting from elsewhere never lands in the block. */
+document.addEventListener("paste", function(e){
+  var n = e.target;
+  if (!n.dataset || !n.dataset.edit) return;
+  e.preventDefault();
+  var txt = (e.clipboardData || window.clipboardData).getData("text").replace(/\s+/g," ");
+  document.execCommand("insertText", false, txt);
+});
+
+function commit(path, val){
+  var p = path.split(".");
+  if (p[0] === "stat"){
+    var num = parseInt(val.replace(/[^0-9-]/g,""),10);
+    if (!isNaN(num)){
+      if (p[1] !== "atk") num = Math.max(0, num);
+      S.stats[p[1]] = num;
+      S.dirty[p[1]] = true;
+    }
+    return;
+  }
+  if (p[0] === "feat"){
+    var f = S.feats[parseInt(p[1],10)];
+    if (!f) return;
+    if (val){
+      f[p[2]] = val;
+      f.edited = true;
+      if (p[2] === "t") f.textEdited = true;
+      if (p[2] === "n") syncParam(f);
+    }
+    return;
+  }
+  switch(path){
+    case "name":    S.name = val; break;
+    case "motives": S.motives = val; break;
+    case "atkName": S.atkName = val; S.dirty.atkName = true; break;
+    case "dmg":     S.dmg = val; S.dirty.dmg = true; break;
+  }
+}
+
+/* Every feature is Passive, Action or Reaction. The tag cycles those three
+   and nothing else, so a hand-written feature cannot leave the PAR system. */
+var COSTS = ["", "Stress", "Fear", "2 Fear", "3 Fear"];
+
+document.addEventListener("click", function(e){
+  var k = e.target.closest("[data-cycle]");
+  if (k){
+    var f = S.feats[parseInt(k.dataset.cycle,10)];
+    if (f){ f.k = KINDS[(KINDS.indexOf(f.k)+1) % KINDS.length]; f.edited = true; renderBlock(); }
+    return;
+  }
+  if (e.target.id === "pngSheet"){ e.target.hidden = true; return; }
+  var rg = e.target.closest("[data-cycrange]");
+  if (rg){
+    S.range = RANGES[(RANGES.indexOf(S.range)+1) % RANGES.length];
+    S.dirty.range = true; renderStats(); renderBlock(); return;
+  }
+  var dt = e.target.closest("[data-cycdtype]");
+  if (dt){
+    S.dmgType = S.dmgType === "phy" ? "mag" : "phy";
+    S.dirty.dmgType = true; renderStats(); renderBlock(); return;
+  }
+  var c = e.target.closest("[data-cost]");
+  if (c){
+    var g = S.feats[parseInt(c.dataset.cost,10)];
+    if (g){ g.c = COSTS[(COSTS.indexOf(g.c||"")+1) % COSTS.length]; g.edited = true; renderBlock(); }
+    return;
+  }
+});
+
+/* ============ boot ============ */
+try{
+  var saved = localStorage.getItem("af.theme");
+  if (saved) document.documentElement.setAttribute("data-theme", saved);
+}catch(e){}
+
+loadCustom();
+renderPickers();
+applySuggested(true);
+syncAutoFeats(null);
+S.name = NAME_A[Math.floor(Math.random()*NAME_A.length)]+" "+NAME_B[Math.floor(Math.random()*NAME_B.length)];
+S.motives = nextMotive();
+renderAll();
+renderRoster();
+
+})();
+</script>
+
+</body>
+</html>
