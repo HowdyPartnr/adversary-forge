@@ -384,7 +384,7 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
 .track{padding:13px 22px 15px;border-top:1.5px solid var(--line);background:var(--card-2);}
 .track-row{
   display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;
-  padding:7px 0;
+  padding:7px 0;position:relative;padding-right:30px;
 }
 .track-group{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;}
 .track-group .pips{flex-wrap:wrap;max-width:100%;}
@@ -407,7 +407,8 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
 .pip.on{background:var(--plum);border-color:var(--plum);}
 .pips[data-kind="st"] .pip.on{background:var(--gold-bright);border-color:var(--gold);}
 .inst-x{
-  margin-left:auto;width:22px;height:22px;border-radius:50%;cursor:pointer;
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;border-radius:50%;cursor:pointer;
   border:1.5px solid var(--line-strong);background:var(--card);color:var(--ink-soft);
   font-size:13px;line-height:1;display:grid;place-items:center;
 }
@@ -422,8 +423,12 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
   content:"";flex:0 0 auto;width:7px;height:7px;margin-top:5px;border-radius:50%;
   background:var(--gold);opacity:.85;
 }
+.track-foot{display:flex;align-items:center;gap:10px;padding-top:9px;}
+.track-hint{
+  font-size:10.5px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);opacity:.8;
+}
 .inst-add{
-  flex:0 0 auto;margin-left:4px;padding:6px 13px;border-radius:99px;cursor:pointer;
+  flex:0 0 auto;margin-left:0;padding:6px 13px;border-radius:99px;cursor:pointer;
   border:1.5px solid var(--line-strong);background:var(--card);
   font-size:11px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
   transition:all .13s;
@@ -1599,7 +1604,7 @@ function dmgChoices(){
 }
 function defaultDmg(){ return dmgChoices()[1]; }
 
-function applySuggested(force){
+function applySuggested(force, keepWords){
   STAT_DEFS.forEach(function(sd){
     /* A role that removes a stat removes it, full stop. This is structural,
        so it overrides anything the user typed into that field earlier. */
@@ -1612,10 +1617,20 @@ function applySuggested(force){
     if (force || !S.dirty[sd.k]) S.stats[sd.k] = suggest(sd.k);
   });
   if (force || !S.dirty.dmg)     S.dmg     = defaultDmg();
-  if (force || !S.dirty.atkName) S.atkName = ROLES[S.role].atkName;
-  if (force || !S.dirty.range)   S.range   = ROLES[S.role].range;
-  if (force || !S.dirty.dmgType) S.dmgType = ROLES[S.role].dtype || "phy";
-  if (force) S.dirty = {};
+  /* keepWords is the tier change: numbers go back to the SRD, but a weapon name,
+     range or damage type the user chose is theirs and stays put. */
+  if ((force && !keepWords) || !S.dirty.atkName) S.atkName = ROLES[S.role].atkName;
+  if ((force && !keepWords) || !S.dirty.range)   S.range   = ROLES[S.role].range;
+  if ((force && !keepWords) || !S.dirty.dmgType) S.dmgType = ROLES[S.role].dtype || "phy";
+  if (force){
+    var keep = keepWords ? {atkName:S.dirty.atkName, range:S.dirty.range, dmgType:S.dirty.dmgType} : {};
+    S.dirty = {};
+    if (keepWords){
+      if (keep.atkName) S.dirty.atkName = true;
+      if (keep.range)   S.dirty.range   = true;
+      if (keep.dmgType) S.dirty.dmgType = true;
+    }
+  }
 }
 
 /* Features whose name carries a value in brackets keep their body text in step
@@ -2103,10 +2118,12 @@ function trackRows(card, ci){
       +   pips("hp", hpMax, inst.hp, ci, ii) + '</div>'
       + '<div class="track-group"><span class="track-lab">Stress</span>'
       +   pips("st", stMax, inst.st, ci, ii) + '</div>'
-      + (ci === 0 && ii === card.inst.length - 1
-          ? '<button type="button" class="inst-add" id="dupBtn" aria-label="Add another copy">Add</button>' : '')
       + down + '</div>';
-  }).join("");
+  }).join("")
+  + (ci === 0
+      ? '<div class="track-foot"><button type="button" class="inst-add" id="dupBtn">Add another</button>'
+        + '<span class="track-hint">' + card.inst.length + (card.inst.length > 1 ? ' copies' : ' copy') + '</span></div>'
+      : '');
 }
 
 function renderTrack(){
@@ -2658,7 +2675,9 @@ document.addEventListener("click", function(e){
   }
   if (t.dataset.tier){
     S.tier = parseInt(t.dataset.tier,10);
-    applySuggested(false);
+    /* A tier change is a structural move: every number goes back to the SRD
+       figures for the new tier, rather than dragging an old tier's edit along. */
+    applySuggested(true, true);
     rescaleAll();
     scaleRelentless();
     scaleParams();
