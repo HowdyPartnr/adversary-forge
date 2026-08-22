@@ -825,6 +825,7 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
         <div class="field" style="margin-top:18px;">
           <label for="atkNameIn">Standard attack</label>
           <input class="textin" id="atkNameIn" type="text" placeholder="Weapon or attack name">
+          <div class="chips"><button class="chip" id="rollAtk" type="button">Roll a weapon</button></div>
         </div>
         <div class="field-row" style="margin-top:13px;">
           <div class="field">
@@ -1480,7 +1481,7 @@ function newCard(){
     role:"standard", tier:1,
     name:"", motives:"",
     atkName:"", range:"", dmg:"", dmgType:"phy",
-    stats:{diff:0,major:0,severe:0,hp:0,stress:0,atk:0},
+    stats:{diff:0,major:0,severe:0,hp:0,stress:0,atk:0}, hcount:2,
     dirty:{}, feats:[],
     inst:[{hp:0, st:0}]   /* one row of trackers per copy of this adversary */
   };
@@ -1491,6 +1492,15 @@ var S = null;                       /* always STACK[0], the card you are editing
 var UI = {editing:false, lastSaved:null, loaded:null, drag:null, q:"", showRest:false, tab:"build", expanded:null};
 
 /* The card's own name goes into feature text wherever the SRD named its adversary. */
+/* Hordes are written "Horde (3/HP)" in the SRD: how many bodies each HP stands for. */
+function hcOf(c){
+  var n = parseInt(c && c.hcount, 10);
+  return (isNaN(n) || n < 1) ? 2 : n;
+}
+function roleLine(c){
+  var base = "Tier "+c.tier+" "+(ROLES[c.role] ? ROLES[c.role].name : c.role);
+  return c.role === "horde" ? base+" ("+hcOf(c)+"/HP)" : base;
+}
 function nmOf(c){ return (c && c.name && c.name.trim()) || "this adversary"; }
 function nm(){ return nmOf(S); }
 function fxFor(c, t){
@@ -1807,7 +1817,7 @@ function saveStack(){
     localStorage.setItem("af.stack", JSON.stringify(STACK.map(function(c){
       return {name:c.name, role:c.role, tier:c.tier, motives:c.motives, atkName:c.atkName,
               range:c.range, dmg:c.dmg, dmgType:c.dmgType, savedAt:c.savedAt || null,
-              stats:c.stats, feats:c.feats, inst:c.inst, dirty:c.dirty};
+              stats:c.stats, feats:c.feats, inst:c.inst, dirty:c.dirty, hcount:c.hcount};
     })));
   } catch(e){}
 }
@@ -1856,6 +1866,28 @@ function clearMaker(){
   el("cfName").value = ""; el("cfText").value = "";
   cf = {k:"Passive", c:""}; renderPickers();
 }
+var WEAPONS = {
+  standard:["Notched blade","Short spear","Hand axe","Iron mace","Worn sabre","Hooked cleaver","Studded club"],
+  minion:["Rusty knife","Bared teeth","Broken bottle","Grasping claws","Splintered shiv","Thrown rock"],
+  horde:["Countless hands","Grasping arms","A wall of blades","Trampling rush","Snapping jaws","Raised pitchforks"],
+  bruiser:["Heavy maul","Great cleaver","Iron fists","Boulder swing","Chained anchor","Slab of a sword"],
+  leader:["Officer's blade","Command sabre","Duelling rapier","Ceremonial axe","Signal whip","Gilded warhammer"],
+  ranged:["Longbow","Heavy crossbow","Thrown javelin","Sling stones","Poisoned dart","Recurve shortbow"],
+  skulk:["Hidden knife","Garrote wire","Coated dagger","Backstab","Twin blades","Silent needle"],
+  social:["Cutting remark","Withering stare","Practised lie","Public accusation","Whispered threat","Silver tongue"],
+  solo:["Rending strike","Sweeping tail","Crushing bite","Twin talons","Sundering blow","Roaring charge"],
+  support:["Warped bolt","Binding sigil","Draining touch","Hexed needle","Whispered curse","Siphoning ray"]
+};
+function nextWeapon(){
+  var list = WEAPONS[S.role] || WEAPONS.standard;
+  if (list.length === 1) return list[0];
+  var pick = S.atkName;
+  for (var guard = 0; guard < 12 && pick === S.atkName; guard++){
+    pick = list[Math.floor(Math.random()*list.length)];
+  }
+  return pick;
+}
+
 /* Walks the role's list, never handing back the line already on screen. */
 function nextMotive(){
   var list = MOTIVES[S.role] || MOTIVES.standard;
@@ -1911,7 +1943,8 @@ function renderBlock(){
   sortFeats(S.feats);
 
   el("outName").innerHTML = ed("name", S.name, "Nameless thing");
-  el("outClass").innerHTML = "Tier "+S.tier+" "+ROLES[S.role].name;
+  el("outClass").innerHTML = "Tier "+S.tier+" "+ROLES[S.role].name
+    + (S.role === "horde" ? ' (' + ed("hcount", hcOf(S), "2") + '/HP)' : '');
   el("outMotives").innerHTML = "Motives &amp; Tactics: "
     + ed("motives", S.motives, "add some verbs");
 
@@ -2027,7 +2060,7 @@ function renderStack(){
       +   '<span class="stack-grip" aria-hidden="true">&#8942;&#8942;</span>'
       +   '<button type="button" class="stack-open" data-top="'+i+'">'
       +     '<span class="stack-name">'+esc(c.name || "Nameless thing")+'</span>'
-      +     '<span class="stack-meta">Tier '+c.tier+' '+esc(ROLES[c.role]?ROLES[c.role].name:c.role)+'</span>'
+      +     '<span class="stack-meta">'+esc(roleLine(c))+'</span>'
       +   '</button>'
       +   '<button type="button" class="stack-x" data-drop="'+i+'" aria-label="Remove this card">&times;</button>'
       + '</div>'
@@ -2053,6 +2086,7 @@ function vaultDetail(r){
     return (PAR_ORDER[a.k]===undefined?9:PAR_ORDER[a.k]) - (PAR_ORDER[b.k]===undefined?9:PAR_ORDER[b.k]);
   });
   return '<div class="rdetail">'
+    + (r.role === "horde" ? '<p class="rd-mot">'+esc(hcOf(r))+' bodies per HP</p>' : '')
     + (r.motives ? '<p class="rd-mot">Motives &amp; Tactics: '+esc(r.motives)+'</p>' : '')
     + '<div class="rd-stats">' + cells.map(function(c){
         return '<div class="ms"><span class="ms-lab">'+c[0]+'</span><b class="ms-val">'+esc(String(c[1]))+'</b></div>';
@@ -2083,7 +2117,7 @@ function renderRoster(){
           +   '<button class="rload" type="button" data-load="'+i+'">'
           +     '<span class="rname">'+esc(r.name||"Nameless thing")
           +       (n > 1 ? ' <span class="rmult">&times;'+n+'</span>' : '')+'</span>'
-          +     '<span class="rmeta">Tier '+r.tier+' '+esc(ROLES[r.role]?ROLES[r.role].name:r.role)
+          +     '<span class="rmeta">'+esc(roleLine(r))
           +       (r.at ? ' &middot; '+esc(ago(r.at)) : '')+'</span>'
           +   '</button>'
           +   (fresh ? '<span class="rflag">Just saved</span>' : (open ? '<span class="rflag rflag-quiet">In play</span>' : ''))
@@ -2119,7 +2153,7 @@ function save(list){
 function toText(){
   var L = [];
   L.push("**"+(S.name||"Nameless thing")+"**");
-  L.push("Tier "+S.tier+" "+ROLES[S.role].name);
+  L.push(roleLine(S));
   if (S.motives) L.push("*Motives & Tactics:* "+S.motives);
   L.push("");
   var line = "**Difficulty:** "+S.stats.diff;
@@ -2212,7 +2246,7 @@ function paintCard(ctx, draw, K){
   if (draw){
     ctx.font = sans(12.5,900); ctx.fillStyle = C.gold;
     try{ ctx.letterSpacing = "1.4px"; }catch(e){}
-    ctx.fillText(("Tier "+S.tier+" "+ROLES[S.role].name).toUpperCase(), P, y);
+    ctx.fillText(roleLine(K).toUpperCase(), P, y);
     try{ ctx.letterSpacing = "0px"; }catch(e){}
   }
 
@@ -2372,7 +2406,7 @@ var SHEET_MAX = 6, SHEET_GAP = 26;
 
 function cardToDraw(r){
   var c = {name:r.name, role:r.role, tier:r.tier, motives:r.motives, atkName:r.atkName,
-           range:r.range, dmg:r.dmg, dmgType:r.dmgType,
+           range:r.range, dmg:r.dmg, dmgType:r.dmgType, hcount:r.hcount,
            stats:Object.assign({}, r.stats),
            feats:(r.feats||[]).map(function(f){ return Object.assign({}, f); })};
   return c;
@@ -2670,6 +2704,9 @@ document.addEventListener("click", function(e){
       CUSTOM.unshift(sf);
       saveCustom(); clearMaker(); renderAbilities();
       break;
+    case "rollAtk":
+      S.atkName = nextWeapon(); S.dirty.atkName = true;
+      el("atkNameIn").value = S.atkName; renderBlock(); break;
     case "rollMotive":
       S.motives = nextMotive(); el("motiveIn").value = S.motives; renderBlock(); break;
     case "saveBtn":
@@ -2816,6 +2853,10 @@ function commit(path, val){
     case "name":    S.name = val; break;
     case "motives": S.motives = val; break;
     case "atkName": S.atkName = val; S.dirty.atkName = true; break;
+    case "hcount":
+      var hc = parseInt(val.replace(/[^0-9]/g,""),10);
+      S.hcount = (isNaN(hc) || hc < 1) ? 2 : Math.min(hc, 99);
+      break;
     case "dmg":     S.dmg = val; S.dirty.dmg = true; break;
   }
 }
@@ -2859,6 +2900,7 @@ function keepCard(btn){
   S.savedAt = stamp;
   list.unshift({name:S.name, role:S.role, tier:S.tier, motives:S.motives, atkName:S.atkName,
                 range:S.range, dmg:S.dmg, dmgType:S.dmgType, at:stamp,
+                hcount:S.hcount,
                 stats:Object.assign({}, S.stats),
                 feats:S.feats.map(function(f){ return Object.assign({}, f); }),
                 inst:S.inst.map(function(x){ return {hp:x.hp, st:x.st}; })});
