@@ -411,6 +411,8 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
   font-size:10.5px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;
   color:var(--ink-soft);flex:0 0 auto;
 }
+.expline{margin-top:9px;font-size:14.5px;color:var(--ink-soft);}
+.expline strong{color:var(--ink);font-weight:800;}
 .pips{display:flex;gap:4px;flex-wrap:wrap;}
 .pip{
   width:20px;height:20px;padding:0;border-radius:5px;cursor:pointer;
@@ -838,6 +840,11 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
             <div class="chips"><button class="chip" id="rollMotive" type="button">Suggest for this role</button></div>
           </div>
         </div>
+        <div class="field" style="margin-top:13px;">
+          <label for="expIn">Experience</label>
+          <input class="textin" id="expIn" type="text" placeholder="Keen Senses +2">
+          <div class="chips"><button class="chip" id="rollExp" type="button">Suggest for this role</button></div>
+        </div>
       </section>
 
       <section class="panel" data-view="build">
@@ -956,6 +963,7 @@ textarea.textin{resize:vertical;min-height:62px;line-height:1.5;}
         <div class="block-body">
           <div class="statline" id="outStats"></div>
           <div class="atkline" id="outAtk"></div>
+          <div class="expline" id="outExp"></div>
           <div id="outFeats"></div>
         </div>
         <div class="track" id="outTrack"></div>
@@ -1502,7 +1510,7 @@ function newCard(){
   return {
     uid: "c" + (cardSeq++),
     role:"standard", tier:1,
-    name:"", motives:"",
+    name:"", motives:"", exp:"",
     atkName:"", range:"", dmg:"", dmgType:"phy",
     stats:{diff:0,major:0,severe:0,hp:0,stress:0,atk:0}, hcount:2,
     dirty:{}, feats:[],
@@ -1956,7 +1964,7 @@ var cf = {k:"Passive", c:""};
 function saveStack(){
   try {
     localStorage.setItem("af.stack", JSON.stringify(STACK.map(function(c){
-      return {name:c.name, role:c.role, tier:c.tier, motives:c.motives, atkName:c.atkName,
+      return {name:c.name, role:c.role, tier:c.tier, motives:c.motives, exp:c.exp, atkName:c.atkName,
               range:c.range, dmg:c.dmg, dmgType:c.dmgType, savedAt:c.savedAt || null,
               stats:c.stats, feats:c.feats, inst:c.inst, dirty:c.dirty, hcount:c.hcount};
     })));
@@ -2024,6 +2032,32 @@ function nextWeapon(){
   if (list.length === 1) return list[0];
   var pick = S.atkName;
   for (var guard = 0; guard < 12 && pick === S.atkName; guard++){
+    pick = list[Math.floor(Math.random()*list.length)];
+  }
+  return pick;
+}
+
+/* Experiences, exactly as the SRD prints them on its own adversaries, grouped by
+   the role that carries them. Roles the SRD gives only a couple of examples for
+   are topped up with the plain ones any adversary could hold. */
+var EXPS = {
+  standard:["Camouflage +2", "Local Knowledge +3", "Thief +2", "Tracker +2", "Ancient Knowledge +2", "Copycat +3", "Forest Knowledge +3", "Nocturnal Hunter +3"],
+  minion:["Keen Senses +3", "Thief +2", "Intrusion +2", "Camouflage +2", "Huge +3", "Sailor +2", "Sailor +3"],
+  horde:["Camouflage +2", "Sailor +3", "Scent Tracking +3", "Huge +3", "Sailor +2", "Leadership +3", "Local Knowledge +2"],
+  bruiser:["Ambusher +3, Keen Senses +2", "Camouflage +2", "Collateral Damage +2, Throw +4", "Huge +3", "Sailor +2", "Thief +2, Unveiled Threats +3", "Intrusion +2", "Navigation +2", "Sense of Smell +3", "Forest Knowledge +3", "Intimidation +2"],
+  leader:["Commander +2, Local Knowledge +2", "Commander +2, Sailor +3", "Leadership +3", "Local Knowledge +2", "Magical Knowledge +2", "Ancient Knowledge +3", "Ancient Knowledge +3, High Society +2, Tactics +2", "Animal Handling +3", "Bloodhound +3", "Coercion +2, Fallen Lore +2", "Command +3, Intrusion +3", "Aristocrat +3", "Forest Knowledge +4", "Manipulation +2", "Divine Knowledge +3", "Forbidden Knowledge +3, Wisdom of Centuries +3"],
+  ranged:["Local Knowledge +3", "Stealth +2", "Ancient Knowledge +2", "Magical Knowledge +2, Strategize +2", "Manipulation +3", "Camouflage +2", "Huge +3"],
+  skulk:["Camouflage +3", "Intrusion +3", "Keen Senses +3", "Acrobatics +3", "Intrusion +2", "Song Repertoire +3", "Stonesense +3", "Blend In +3", "Bloodthirsty +3", "Manipulation +3"],
+  social:["Aristocrat +3", "Shrewd Negotiator +3", "Socialite +3", "Administration +3, Courtier +3", "Espionage +3", "Manipulation +3, Socialite +3", "Nobility +2, Trade +2", "History +3, Nobility +3"],
+  solo:["Intimidation +2, Tear Things Apart +2", "Tremor Sense +2", "Camouflage +2", "Stealth +3", "Protect What Is Mine +3", "Boundless Knowledge +4", "Conquest +3, History +2, Intimidation +3", "Hunt from Above +5", "Swimming +3"],
+  support:["Magical Knowledge +2", "Fallen Lore +2, Rituals +2", "Manipulation +3", "Ancient Knowledge +2", "Camouflage +2", "Huge +3", "Sailor +2"]
+};
+
+function nextExp(){
+  var list = EXPS[S.role] || EXPS.standard;
+  if (list.length === 1) return list[0];
+  var pick = S.exp;
+  for (var guard = 0; guard < 12 && pick === S.exp; guard++){
     pick = list[Math.floor(Math.random()*list.length)];
   }
   return pick;
@@ -2110,6 +2144,8 @@ function renderBlock(){
     + '<span class="pickable" data-cycrange="1" title="Click to change range">'+esc(S.range || "Close")+'</span>'
     + ' &middot; ' + ed("dmg", S.dmg, "damage") + ' '
     + '<span class="pickable" data-cycdtype="1" title="Click to swap physical and magic">'+esc(dtLabel)+'</span>';
+
+  el("outExp").innerHTML = '<strong>Experience:</strong> ' + ed("exp", S.exp, "none");
 
   renderTrack();
   el("outFeats").innerHTML = S.feats.length
@@ -2234,6 +2270,7 @@ function vaultDetail(r){
     + '<div class="rd-stats">' + cells.map(function(c){
         return '<div class="ms"><span class="ms-lab">'+c[0]+'</span><b class="ms-val">'+esc(String(c[1]))+'</b></div>';
       }).join("") + '</div>'
+    + (r.exp ? '<p class="rd-mot"><b>Experience:</b> '+esc(r.exp)+'</p>' : '')
     + '<p class="rd-atk"><b>'+esc(r.atkName||"Attack")+':</b> '+esc(r.range||"Close")+' &middot; '+esc(r.dmg||"—")+' '+esc(dt)+'</p>'
     + (feats.length
         ? feats.map(function(f){
@@ -2280,6 +2317,7 @@ function renderAll(){
   el("nameIn").value = S.name;
   el("motiveIn").value = S.motives;
   el("atkNameIn").value = S.atkName;
+  el("expIn").value = S.exp || "";
   el("dmgIn").value = S.dmg;
 }
 
@@ -2303,6 +2341,7 @@ function toText(){
   if (S.stats.major !== null) line += " | **Thresholds:** "+S.stats.major+"/"+S.stats.severe;
   line += " | **HP:** "+S.stats.hp+" | **Stress:** "+S.stats.stress;
   L.push(line);
+  if (S.exp) L.push("**Experience:** "+S.exp);
   L.push("**ATK:** "+(S.stats.atk>=0?"+":"")+S.stats.atk
     + " | **"+(S.atkName||"Attack")+":** "+(S.range||"Close")+" | "+(S.dmg||"—")+" "+S.dmgType);
   if (S.feats.length){
@@ -2440,6 +2479,17 @@ function paintCard(ctx, draw, K){
     ctx.font = sans(16); ctx.fillStyle = C.ink;
     ctx.fillText(" "+(K.range||"Close")+" · "+(K.dmg||"—")+" "+dt, P+lw2, y);
   }
+  if (K.exp){
+    y += 24;
+    if (draw){
+      ctx.font = sans(15,900); ctx.fillStyle = C.ink;
+      var el2 = "Experience:";
+      ctx.fillText(el2, P, y);
+      var lw3 = ctx.measureText(el2).width;
+      ctx.font = sans(15); ctx.fillStyle = C.inkSoft;
+      ctx.fillText(" "+K.exp, P+lw3, y);
+    }
+  }
 
   /* ---- features ---- */
   sortFeats(K.feats);
@@ -2548,7 +2598,7 @@ function renderPNG(){
 var SHEET_MAX = 6, SHEET_GAP = 26;
 
 function cardToDraw(r){
-  var c = {name:r.name, role:r.role, tier:r.tier, motives:r.motives, atkName:r.atkName,
+  var c = {name:r.name, role:r.role, tier:r.tier, motives:r.motives, exp:r.exp, atkName:r.atkName,
            range:r.range, dmg:r.dmg, dmgType:r.dmgType, hcount:r.hcount,
            stats:Object.assign({}, r.stats),
            feats:(r.feats||[]).map(function(f){ return Object.assign({}, f); })};
@@ -2856,6 +2906,8 @@ document.addEventListener("click", function(e){
       el("atkNameIn").value = S.atkName; renderBlock(); break;
     case "rollMotive":
       S.motives = nextMotive(); el("motiveIn").value = S.motives; renderBlock(); break;
+    case "rollExp":
+      S.exp = nextExp(); el("expIn").value = S.exp; renderBlock(); break;
     case "saveBtn":
       keepCard(t);
       break;
@@ -2924,6 +2976,7 @@ document.addEventListener("input", function(e){
     case "nameIn":    S.name = n.value; renderBlock(); renderStack(); break;
     case "motiveIn":  S.motives = n.value; renderBlock(); break;
     case "atkNameIn": S.atkName = n.value; S.dirty.atkName = true; renderBlock(); break;
+    case "expIn":     S.exp = n.value; renderBlock(); break;
     case "dmgIn":     S.dmg = n.value; S.dirty.dmg = true; rescaleAll(); renderBlock(); break;
   }
 });
@@ -2952,6 +3005,7 @@ document.addEventListener("focusout", function(e){
   el("nameIn").value = S.name;
   el("motiveIn").value = S.motives;
   el("atkNameIn").value = S.atkName;
+  el("expIn").value = S.exp || "";
   el("dmgIn").value = S.dmg;
 });
 
@@ -2999,6 +3053,7 @@ function commit(path, val){
   switch(path){
     case "name":    S.name = val; break;
     case "motives": S.motives = val; break;
+    case "exp":     S.exp = val; break;
     case "atkName": S.atkName = val; S.dirty.atkName = true; break;
     case "hcount":
       var hc = parseInt(val.replace(/[^0-9]/g,""),10);
@@ -3045,7 +3100,7 @@ function keepCard(btn){
   UI.lastSaved = stamp;
   UI.loaded = stamp;
   S.savedAt = stamp;
-  list.unshift({name:S.name, role:S.role, tier:S.tier, motives:S.motives, atkName:S.atkName,
+  list.unshift({name:S.name, role:S.role, tier:S.tier, motives:S.motives, exp:S.exp, atkName:S.atkName,
                 range:S.range, dmg:S.dmg, dmgType:S.dmgType, at:stamp,
                 hcount:S.hcount,
                 stats:Object.assign({}, S.stats),
@@ -3063,6 +3118,7 @@ function keepCard(btn){
     applySuggested(true); syncAutoFeats(null);
     S.name = NAME_A[Math.floor(Math.random()*NAME_A.length)]+" "+NAME_B[Math.floor(Math.random()*NAME_B.length)];
     S.motives = nextMotive();
+    S.exp = nextExp();
     renderAll(); renderRoster();
     var t2 = el("topCard");
     if (t2 && !reduce){
@@ -3141,6 +3197,7 @@ if (!loadStack()){
   syncAutoFeats(null);
   S.name = NAME_A[Math.floor(Math.random()*NAME_A.length)]+" "+NAME_B[Math.floor(Math.random()*NAME_B.length)];
   S.motives = nextMotive();
+  S.exp = nextExp();
 }
 renderAll();
 renderRoster();
