@@ -1576,13 +1576,28 @@ function range(key){
   return [b[0], b[1]];
 }
 
-/* Minions deal a flat number in the SRD, socials hit softest of anyone. */
-var FLAT_DMG = {1:"2", 2:"5", 3:"5", 4:"11"};
-function defaultDmg(){
-  if (S.role === "minion") return FLAT_DMG[S.tier];
-  if (S.role === "social" || S.role === "horde") return TIERS[S.tier].dmg[0];
-  return TIERS[S.tier].dmg[1];
+/* Standard attack damage is not one benchmark for everyone: a Skulk hits for
+   roughly half what a Bruiser does at the same tier. These are the low, middle
+   and high damage rolls actually printed on the SRD adversaries of that role and
+   tier. Where the SRD prints none, the role's own ratio to the tier benchmark
+   fills the gap. Minions deal a flat number, as they do in the book. */
+var DMG_SUG = {
+  standard:{1:["1d6+1","1d6+2","1d8+2"], 2:["2d8+1","2d6+5","2d8+4"], 3:["3d8+1","3d8+3","3d8+5"], 4:["4d8+7","4d8+9","4d8+11"]},
+  minion:{1:["1","2","4"], 2:["4","5","6"], 3:["3","5","7"], 4:["10","11","12"]},
+  horde:{1:["1d8+2","1d10+2","1d8+3"], 2:["2d6+3","2d8+2","2d6+4"], 3:["3d8+1","3d8+3","3d8+5"], 4:["4d6+8","4d6+10","4d6+12"]},
+  bruiser:{1:["2d6","1d12+2","1d12+3"], 2:["2d8+5","2d12+1","2d12+3"], 3:["2d12+1","3d8+2","3d10+1"], 4:["4d12+13","4d12+15","4d12+17"]},
+  leader:{1:["1d8+3","1d8+5","1d10+4"], 2:["2d10+2","2d10+3","2d10+4"], 3:["3d10","3d10+1","2d20+4"], 4:["4d12+6","4d12+8","4d12+10"]},
+  ranged:{1:["1d8+1","1d10+2","1d8+3"], 2:["2d8+3","2d10+2","2d10+4"], 3:["3d10+1","3d10+3","3d10+5"], 4:["4d8+13","4d8+15","4d8+17"]},
+  skulk:{1:["1d4+1","1d6+2","1d8+3"], 2:["2d6+3","2d8+3","2d8+6"], 3:["3d6+1","2d6+7","3d8+1"], 4:["4d8+6","4d8+8","4d8+10"]},
+  social:{1:["1d4+1","1d4+2","1d6+1"], 2:["1d4+3","1d6+2","2d6+3"], 3:["3d6+1","3d6+3","3d6+5"], 4:["4d8","4d8+1","4d8+3"]},
+  solo:{1:["1d10+2","1d20","1d12+6"], 2:["2d6+3","2d10+4","2d20+3"], 3:["2d12+2","4d10","3d20"], 4:["4d8+7","4d12+4","4d12+15"]},
+  support:{1:["1d6","1d6+2","1d6+4"], 2:["2d4+1","2d4+3","2d4+5"], 3:["3d4+1","3d6+2","3d6+5"], 4:["4d6+8","4d6+10","4d6+12"]}
+};
+
+function dmgChoices(){
+  return (DMG_SUG[S.role] || DMG_SUG.standard)[S.tier] || TIERS[S.tier].dmg;
 }
+function defaultDmg(){ return dmgChoices()[1]; }
 
 function applySuggested(force){
   STAT_DEFS.forEach(function(sd){
@@ -1655,7 +1670,7 @@ function scaleParams(){
   S.feats.forEach(function(f){
     if (!PARAM_FEATS[f.id] || f.edited) return;
     if (f.id === "minion") f.n = "Minion (" + TIERS[S.tier].major[2] + ")";
-    if (f.id === "horde")  f.n = "Horde (" + TIERS[S.tier].dmg[0] + ")";
+    if (f.id === "horde")  f.n = "Horde (" + dmgChoices()[0] + ")";
     syncParam(f);
   });
 }
@@ -1793,8 +1808,8 @@ function renderStats(){
     return '<button type="button" data-dtype="'+d.k+'" aria-pressed="'+(S.dmgType===d.k)+'">'+(d.k==="phy"?"Physical (phy)":"Magic (mag)")+'</button>';
   }).join("");
 
-  el("dmgchips").innerHTML = TIERS[S.tier].dmg.map(function(d,i){
-    return '<button type="button" class="chip" data-dmg="'+esc(d)+'">'+["Low","Benchmark","High"][i]+" "+esc(d)+'</button>';
+  el("dmgchips").innerHTML = dmgChoices().map(function(d,i){
+    return '<button type="button" class="chip" data-dmg="'+esc(d)+'">'+["Low","Typical","High"][i]+" "+esc(d)+'</button>';
   }).join("");
 }
 
